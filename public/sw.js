@@ -1,4 +1,4 @@
-const CACHE_NAME = 'examen-conciencia-v27-icon';
+const CACHE_NAME = 'examen-conciencia-v28-fixed-icon';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
