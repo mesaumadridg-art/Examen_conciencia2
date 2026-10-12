@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   X, 
   BookOpen, 
@@ -94,6 +94,46 @@ export const HelpCatechismModal: React.FC<HelpCatechismModalProps> = ({
   const [evalAdvertencia, setEvalAdvertencia] = useState<boolean | null>(null);
   const [evalConsentimiento, setEvalConsentimiento] = useState<boolean | null>(null);
 
+  // References to reset scroll position when changing topics
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const outerBackdropRef = useRef<HTMLDivElement>(null);
+
+  const scrollToTop = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+    if (outerBackdropRef.current) {
+      outerBackdropRef.current.scrollTop = 0;
+    }
+    // Also use requestAnimationFrame in case content height or DOM update is deferred
+    requestAnimationFrame(() => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = 0;
+      }
+      if (outerBackdropRef.current) {
+        outerBackdropRef.current.scrollTop = 0;
+      }
+    });
+  };
+
+  const handleSelectTopic = (topicId: TopicId) => {
+    setActiveTopic(topicId);
+    scrollToTop();
+  };
+
+  useEffect(() => {
+    scrollToTop();
+  }, [activeTopic]);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (initialTopic) {
+        setActiveTopic(initialTopic);
+      }
+      scrollToTop();
+    }
+  }, [isOpen, initialTopic]);
+
   if (!isOpen && !isInline) return null;
 
   const content = (
@@ -137,7 +177,7 @@ export const HelpCatechismModal: React.FC<HelpCatechismModalProps> = ({
               <button
                 key={topic.id}
                 type="button"
-                onClick={() => setActiveTopic(topic.id)}
+                onClick={() => handleSelectTopic(topic.id)}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all shrink-0 ${
                   isActive
                     ? 'bg-[#C9A227] text-slate-950 font-bold shadow-[0_2px_10px_rgba(201,162,39,0.3)]'
@@ -152,7 +192,10 @@ export const HelpCatechismModal: React.FC<HelpCatechismModalProps> = ({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-6 text-sm leading-relaxed min-w-0">
+        <div 
+          ref={scrollContainerRef}
+          className="p-4 sm:p-6 overflow-y-auto space-y-6 text-sm leading-relaxed min-w-0"
+        >
           
           {/* TOPIC 1: ¿Qué es el Pecado? */}
           {activeTopic === 'que-es-pecado' && (
@@ -223,7 +266,7 @@ export const HelpCatechismModal: React.FC<HelpCatechismModalProps> = ({
               <div className="pt-2 flex justify-end">
                 <button
                   type="button"
-                  onClick={() => setActiveTopic('venial-vs-mortal')}
+                  onClick={() => handleSelectTopic('venial-vs-mortal')}
                   className="px-4 py-2.5 rounded-xl bg-[#C9A227]/15 hover:bg-[#C9A227]/25 text-[#C9A227] font-semibold text-xs transition-colors flex items-center gap-2 border border-[#C9A227]/30"
                 >
                   <span>Continuar: Pecado Venial vs. Mortal</span>
@@ -353,14 +396,14 @@ export const HelpCatechismModal: React.FC<HelpCatechismModalProps> = ({
               <div className="pt-2 flex justify-between items-center">
                 <button
                   type="button"
-                  onClick={() => setActiveTopic('que-es-pecado')}
+                  onClick={() => handleSelectTopic('que-es-pecado')}
                   className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-white"
                 >
                   ← Volver a Qué es el Pecado
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTopic('gravedad-3-condiciones')}
+                  onClick={() => handleSelectTopic('gravedad-3-condiciones')}
                   className="px-4 py-2.5 rounded-xl bg-[#C9A227]/15 hover:bg-[#C9A227]/25 text-[#C9A227] font-semibold text-xs transition-colors flex items-center gap-2 border border-[#C9A227]/30"
                 >
                   <span>Continuar: Cómo Determinar la Gravedad</span>
@@ -601,14 +644,14 @@ export const HelpCatechismModal: React.FC<HelpCatechismModalProps> = ({
               <div className="pt-2 flex justify-between items-center">
                 <button
                   type="button"
-                  onClick={() => setActiveTopic('venial-vs-mortal')}
+                  onClick={() => handleSelectTopic('venial-vs-mortal')}
                   className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-white"
                 >
                   ← Volver a Venial vs. Mortal
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTopic('sacramento-encuentro')}
+                  onClick={() => handleSelectTopic('sacramento-encuentro')}
                   className="px-4 py-2.5 rounded-xl bg-[#C9A227]/15 hover:bg-[#C9A227]/25 text-[#C9A227] font-semibold text-xs transition-colors flex items-center gap-2 border border-[#C9A227]/30"
                 >
                   <span>Continuar: El Sacramento como Encuentro</span>
@@ -724,14 +767,14 @@ export const HelpCatechismModal: React.FC<HelpCatechismModalProps> = ({
               <div className="pt-2 flex justify-between items-center">
                 <button
                   type="button"
-                  onClick={() => setActiveTopic('gravedad-3-condiciones')}
+                  onClick={() => handleSelectTopic('gravedad-3-condiciones')}
                   className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-white"
                 >
                   ← Volver a Evaluar Gravedad
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTopic('preguntas-frecuentes')}
+                  onClick={() => handleSelectTopic('preguntas-frecuentes')}
                   className="px-4 py-2.5 rounded-xl bg-[#C9A227]/15 hover:bg-[#C9A227]/25 text-[#C9A227] font-semibold text-xs transition-colors flex items-center gap-2 border border-[#C9A227]/30"
                 >
                   <span>Ver Dudas y Preguntas Frecuentes</span>
@@ -818,7 +861,7 @@ export const HelpCatechismModal: React.FC<HelpCatechismModalProps> = ({
               <div className="pt-2 flex justify-start">
                 <button
                   type="button"
-                  onClick={() => setActiveTopic('sacramento-encuentro')}
+                  onClick={() => handleSelectTopic('sacramento-encuentro')}
                   className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-white"
                 >
                   ← Volver a Encuentro con Jesús
@@ -854,6 +897,7 @@ export const HelpCatechismModal: React.FC<HelpCatechismModalProps> = ({
 
   return (
     <div 
+      ref={outerBackdropRef}
       className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-sm p-2 sm:p-4 md:p-6 flex min-h-full items-start sm:items-center justify-center animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"

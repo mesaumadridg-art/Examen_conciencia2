@@ -5,7 +5,7 @@ import { ExaminationView } from './components/ExaminationView';
 import { ConfessionSummaryView } from './components/ConfessionSummaryView';
 import { HistoryAndCheckinView } from './components/HistoryAndCheckinView';
 import { StatsView } from './components/StatsView';
-import { PrayersAndGuidanceView } from './components/PrayersAndGuidanceView';
+import { PrayersView } from './components/PrayersView';
 import { SettingsView } from './components/SettingsView';
 import { PersonalizationWizardModal } from './components/PersonalizationWizardModal';
 import { FloatingExaminationWizardModal } from './components/FloatingExaminationWizardModal';
@@ -255,7 +255,6 @@ export default function App() {
         onUpdateSettings={handleUpdateSettings}
         unconfessedCount={unconfessedCount}
         openSettingsModal={() => setIsSettingsOpen(true)}
-        openWizardModal={() => setIsWizardModalOpen(true)}
         openHelpModal={() => setIsHelpModalOpen(true)}
       />
 
@@ -377,7 +376,7 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'oraciones' && <PrayersAndGuidanceView />}
+        {activeTab === 'oraciones' && <PrayersView />}
       </main>
 
       {/* Settings Modal */}

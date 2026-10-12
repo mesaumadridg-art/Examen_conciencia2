@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cross, Moon, Sun, Settings, ScrollText, CheckSquare, BarChart3, BookOpen, ShieldCheck, Home, Sparkles, HelpCircle } from 'lucide-react';
+import { Cross, Moon, Sun, Settings, ScrollText, CheckSquare, BarChart3, BookOpen, ShieldCheck, Home, HelpCircle } from 'lucide-react';
 import { UserSettings } from '../types';
 import { AppIcon } from './AppIcon';
 
@@ -10,7 +10,6 @@ interface HeaderProps {
   onUpdateSettings: (newSettings: Partial<UserSettings>) => void;
   unconfessedCount: number;
   openSettingsModal: () => void;
-  openWizardModal?: () => void;
   openHelpModal: () => void;
 }
 
@@ -21,7 +20,6 @@ export const Header: React.FC<HeaderProps> = ({
   onUpdateSettings,
   unconfessedCount,
   openSettingsModal,
-  openWizardModal,
   openHelpModal,
 }) => {
   const isDark = settings.theme === 'dark';
@@ -62,16 +60,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Quick Actions (Theme, Settings & Question Mark) */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {openWizardModal && (
-              <button
-                onClick={openWizardModal}
-                className="hidden md:flex px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-800 dark:text-white font-bold text-xs items-center gap-1.5 shrink-0 transition-all"
-                title="Abrir Examen de Conciencia en Ventana Flotante"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#C9A227]" />
-                <span>Examen Flotante</span>
-              </button>
-            )}
+
 
             <button
               onClick={toggleTheme}
