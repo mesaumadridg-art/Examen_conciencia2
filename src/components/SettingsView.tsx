@@ -735,70 +735,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </div>
 
-      {/* 4. Ícono de la Aplicación (PWA para la Pantalla de Inicio / Cajón de Apps) */}
+      {/* 4. Ícono Oficial de la Aplicación */}
       <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-3">
         <div className="flex items-center gap-2 text-[#C9A227] font-semibold text-sm">
           <Sparkles className="w-4 h-4 text-[#C9A227]" />
-          <span className="text-xs font-semibold uppercase tracking-wider">Ícono de la Aplicación (Pantalla de Inicio)</span>
+          <span className="text-xs font-semibold uppercase tracking-wider">Ícono Oficial de la Aplicación</span>
         </div>
 
-        <p className="text-[11px] text-slate-600 dark:text-white/60 leading-relaxed">
-          Selecciona el ícono visual que aparecerá en el cajón de aplicaciones de tu móvil o escritorio al instalar la App:
-        </p>
-
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            {
-              id: 'icon_1',
-              title: 'Cruz y Paloma',
-              desc: 'Cruz dorada y paloma'
-            },
-            {
-              id: 'icon_2',
-              title: 'Sagrado Corazón',
-              desc: 'Corazón de misericordia'
-            },
-            {
-              id: 'icon_3',
-              title: 'Estola Confesional',
-              desc: 'Estola de reconciliación'
-            }
-          ].map((iconOption) => {
-            const isCurrent = (settings.selectedIconId || 'icon_1') === iconOption.id;
-            return (
-              <button
-                key={iconOption.id}
-                onClick={() => {
-                  onUpdateSettings({ selectedIconId: iconOption.id });
-                }}
-                className={`p-2.5 rounded-2xl border transition-all text-center space-y-2 flex flex-col items-center justify-between ${
-                  isCurrent
-                    ? 'bg-[#C9A227]/15 border-[#C9A227] ring-1 ring-[#C9A227]'
-                    : 'bg-slate-50 dark:bg-black/30 border-slate-200 dark:border-white/5 hover:border-[#C9A227]/50'
-                }`}
-              >
-                <div className="relative flex items-center justify-center rounded-xl overflow-hidden shadow-sm">
-                  <AppIcon iconId={iconOption.id} size="lg" />
-                  {isCurrent && (
-                    <div className="absolute inset-0 bg-[#C9A227]/25 backdrop-blur-[1px] flex items-center justify-center rounded-2xl">
-                      <span className="bg-[#C9A227] text-black rounded-full p-1 shadow-md">
-                        <Check className="w-4 h-4 stroke-[3]" />
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="w-full min-w-0">
-                  <span className="text-[11px] font-bold text-slate-900 dark:text-white block truncate">
-                    {iconOption.title}
-                  </span>
-                  <span className="text-[9px] text-slate-500 dark:text-white/50 block truncate">
-                    {isCurrent ? 'Seleccionado' : 'Toca para elegir'}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5">
+          <AppIcon size="lg" className="shadow-md" />
+          <div className="min-w-0 flex-1">
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+              Cruz, Sagrado Corazón y Espíritu Santo
+            </h4>
+            <p className="text-[11px] text-slate-600 dark:text-white/60 leading-snug mt-0.5">
+              Diseño sacro distintivo en oro litúrgico y púrpura real, optimizado para la pantalla de inicio, accesos directos y PWA instalada.
+            </p>
+          </div>
         </div>
       </div>
 

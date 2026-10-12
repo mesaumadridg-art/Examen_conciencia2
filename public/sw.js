@@ -1,4 +1,4 @@
-const CACHE_NAME = 'examen-conciencia-v10';
+const CACHE_NAME = 'examen-conciencia-v27-icon';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
@@ -204,49 +204,34 @@ self.addEventListener('notificationclick', (event) => {
 // Check reminders periodically while SW thread is active
 setInterval(checkScheduledRemindersNow, 60000);
 
-// Fetch Event: Network-first for HTML/navigation; Cache-first for assets
+// Fetch Event: Network-First strategy to ensure fresh app code is always delivered
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  // Network-First strategy for HTML navigation requests
-  if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
-    event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          return caches.match('/index.html') || caches.match(event.request);
-        })
-    );
+  const url = new URL(event.request.url);
+
+  // Skip caching for backend API endpoints
+  if (url.pathname.startsWith('/api/')) {
     return;
   }
 
-  // Cache-first with network fallback for static assets
+  // Network-First strategy: always fetch fresh from network, fallback to cache if offline
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        fetch(event.request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
-            }
-          })
-          .catch(() => {});
-        return cachedResponse;
-      }
-
-      return fetch(event.request).then((networkResponse) => {
+    fetch(event.request)
+      .then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
         }
         return networkResponse;
-      });
-    })
+      })
+      .catch(async () => {
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+        if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
+          return caches.match('/index.html');
+        }
+        return new Response('Offline', { status: 503, statusText: 'Offline' });
+      })
   );
 });
