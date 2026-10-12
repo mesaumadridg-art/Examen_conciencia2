@@ -1,17 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { ConfessionRecord, UserSettings } from '../types';
 import { QUESTIONS, CATEGORIES } from '../data/questionsData';
 import { 
   BarChart3, 
   Target, 
-  Download, 
   TrendingUp, 
   Award, 
-  CheckCircle, 
-  Sparkles, 
-  FileText,
-  FileSpreadsheet,
-  Share2
+  CheckCircle 
 } from 'lucide-react';
 
 interface StatsViewProps {
@@ -56,8 +51,6 @@ export const StatsView: React.FC<StatsViewProps> = ({
   settings,
   onUpdateSettings,
 }) => {
-  const [copiedStats, setCopiedStats] = useState(false);
-
   // Compute frequent sins and capital sin counts
   const { capitalSinCounts, frequentQuestions, totalConfessions, penanceRate } = useMemo(() => {
     const capitalCounts: Record<string, number> = {
@@ -122,119 +115,22 @@ export const StatsView: React.FC<StatsViewProps> = ({
 
   const virtInfo = CAPITAL_SIN_VIRTUES[dominantDefectFound] || CAPITAL_SIN_VIRTUES['Soberbia'];
 
-  // Export functions
-  const exportAsJSON = () => {
-    const exportData = {
-      app: 'Examen de Conciencia y Guía de Confesión',
-      generatedAt: new Date().toISOString(),
-      summaryStats: {
-        totalConfessions,
-        penanceCompletionRate: `${penanceRate}%`,
-        dominantDefect: dominantDefectFound,
-        opposingVirtueToWorkOn: virtInfo.virtue,
-      },
-      capitalSinsBreakdown: capitalSinCounts,
-      frequentSins: frequentQuestions,
-      confessionHistory: history,
-    };
-
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `reporte_espiritual_${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-  };
-
-  const exportAsCSV = () => {
-    const rows = [
-      ['Fecha Confesion', 'Sacerdote / Lugar', 'Pecados Registrados', 'Penitencia Cumplida'],
-      ...history.map((h) => [
-        new Date(h.sessionDate).toLocaleDateString('es-ES'),
-        `"${h.priestOrPlace || ''}"`,
-        h.sinsList.length,
-        h.penanceFulfilled ? 'Si' : 'No',
-      ]),
-    ];
-
-    const csvContent = 'data:text/csv;charset=utf-8,' + rows.map((e) => e.join(',')).join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `estadisticas_espirituales_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const copyWeeklySummary = () => {
-    const textLines = [
-      '=== INFORME Y ESTADÍSTICAS DE SEGUIMIENTO ESPIRITUAL ===',
-      `Fecha de generación: ${new Date().toLocaleDateString('es-ES')}`,
-      `Total de Confesiones Registradas: ${totalConfessions}`,
-      `Tasa de Cumplimiento de Penitencia: ${penanceRate}%`,
-      `Defecto Dominante Identificado: ${dominantDefectFound}`,
-      `Virtud Principal a Cultivar: ${virtInfo.virtue}`,
-      '',
-      '--- PECADOS Y FALTAS MÁS FRECUENTES ---',
-      ...frequentQuestions.map((q, idx) => `${idx + 1}. [${q.category}] ${q.text} (${q.count} veces)`),
-      '',
-      '--- DESGLOSE POR PECADOS CAPITALES ---',
-      ...Object.entries(capitalSinCounts).map(([cap, count]) => `- ${cap}: ${count} faltas`),
-    ];
-
-    navigator.clipboard.writeText(textLines.join('\n'));
-    setCopiedStats(true);
-    setTimeout(() => setCopiedStats(false), 2500);
-  };
-
   return (
     <div className="space-y-6 pb-20 max-w-5xl mx-auto">
       {/* Header Banner */}
       <div className="bg-slate-100 dark:bg-[#141415] border border-slate-200 dark:border-white/10 p-5 rounded-2xl">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-[#C9A227]" />
-              <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#C9A227]">
-                Análisis Espiritual Personal
-              </span>
-            </div>
-            <h2 className="text-2xl font-serif italic text-slate-900 dark:text-[#E0E0E0] mt-1">
-              Estadísticas y Defecto Dominante
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-white/50 mt-0.5">
-              Identifica tus tendencias recurrentes para dirigir tu lucha ascética y adquirir virtudes.
-            </p>
-          </div>
-
-          {/* Export Actions */}
-          <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap">
-            <button
-              onClick={copyWeeklySummary}
-              className="px-3.5 py-2 rounded-xl bg-slate-200 dark:bg-black/40 text-slate-800 dark:text-white/80 border border-slate-300 dark:border-white/10 text-xs font-semibold hover:bg-slate-300 dark:hover:bg-white/5 transition-colors flex items-center gap-1.5"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>{copiedStats ? '¡Copiado!' : 'Copiar Resumen'}</span>
-            </button>
-
-            <button
-              onClick={exportAsJSON}
-              className="px-3.5 py-2 rounded-xl bg-[#C9A227] hover:bg-[#D4B34A] text-black font-semibold text-xs shadow-xs transition-colors flex items-center gap-1.5"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Exportar JSON</span>
-            </button>
-
-            <button
-              onClick={exportAsCSV}
-              className="p-2 rounded-xl bg-slate-200 dark:bg-black/40 text-slate-800 dark:text-white/80 border border-slate-300 dark:border-white/10 text-xs font-semibold hover:bg-slate-300 dark:hover:bg-white/5 transition-colors"
-              title="Descargar CSV"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-            </button>
-          </div>
+        <div className="flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-[#C9A227]" />
+          <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#C9A227]">
+            Análisis Espiritual Personal
+          </span>
         </div>
+        <h2 className="text-2xl font-serif italic text-slate-900 dark:text-[#E0E0E0] mt-1">
+          Estadísticas y Defecto Dominante
+        </h2>
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-white/50 mt-0.5">
+          Identifica tus tendencias recurrentes para dirigir tu lucha ascética y adquirir virtudes.
+        </p>
       </div>
 
       {/* Dominant Defect Focus Card */}
