@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="100" fill="#141415"/>
+  <rect width="492" height="492" x="10" y="10" rx="90" fill="none" stroke="#C9A227" stroke-width="6" opacity="0.4"/>
+  
+  <!-- Divine Rays -->
+  <circle cx="256" cy="230" r="160" fill="none" stroke="#C9A227" stroke-width="4" stroke-dasharray="16 8" opacity="0.6"/>
+  <circle cx="256" cy="230" r="120" fill="none" stroke="#FFE899" stroke-width="2" opacity="0.4"/>
+  
+  <!-- Golden Cross -->
+  <path d="M256 60 L256 420 M130 180 L382 180" stroke="#C9A227" stroke-width="36" stroke-linecap="round"/>
+  <path d="M256 68 L256 412 M138 180 L374 180" stroke="#FFE899" stroke-width="16" stroke-linecap="round"/>
+  
+  <!-- Holy Dove emblem -->
+  <path d="M256 260 C230 220 180 210 140 230 C180 260 220 270 248 290 C264 270 320 250 372 230 C332 210 282 220 256 260 Z" fill="#FFFFFF"/>
+  <circle cx="250" cy="250" r="8" fill="#C9A227"/>
+</svg>

@@ -1,0 +1,6 @@
+{
+  "name": "Examen de Conciencia y Guía de Confesión",
+  "description": "Aplicación para la preparación del sacramento de la confesión con exámenes guiados, resumen para el sacerdote, hábitos y recordatorios semanales.",
+  "requestFramePermissions": ["notifications"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
