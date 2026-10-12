@@ -1,7 +1,7 @@
 {
-  "versionCode": 1,
-  "versionName": "1.0.0",
-  "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.0.0/Examen_de_Conciencia_v1.0.0.apk",
-  "changelog": "- Versión inicial de Examen de Conciencia\n- Examen guiado para niños, jóvenes y adultos\n- Resumen para confesión con pecados por mandamientos\n- Recordatorios nativos diarios y semanales\n- Backup/restauración de datos (JSON)\n- Modo privado para confesionario\n- Orientación espiritual con IA (opcional)\n- Actualizaciones automáticas via GitHub Releases\n- Iconos originales restaurados",
+  "versionCode": 2,
+  "versionName": "1.1.0",
+  "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.1.0/Examen_de_Conciencia_v1.1.0.apk",
+  "changelog": "- Time picker nativo: botón 🕐 abre selector de hora Android\n- Notificaciones: Service Worker + fallback web (sin plugins Java 21)\n- DateTimePicker nativo: plugin @capawesome-team/capacitor-datetime-picker\n- Iconos originales restaurados\n- Build con Java 17 (sin errores Java 21)",
   "force": false
 }
