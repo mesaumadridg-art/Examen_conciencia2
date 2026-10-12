@@ -1,0 +1,7 @@
+{
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "url": "http://192.168.1.XXX/examen-conciencia/ExamenConciencia-v1.0.0.apk",
+  "changelog": "- Versión inicial de Examen de Conciencia\n- Examen guiado para niños, jóvenes y adultos\n- Resumen para confesión\n- Recordatorios diarios y semanales\n- Backup/restauración de datos\n- Modo privado para confesionario",
+  "force": false
+}

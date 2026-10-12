@@ -32,6 +32,7 @@ import {
   DAYS_OF_WEEK 
 } from './lib/storage';
 import { syncRemindersWithServiceWorker } from './lib/notifications';
+import { updateService } from './services/updateService';
 import { ALL_QUESTIONS, CATEGORIES, getQuestionById } from './data/questionsData';
 import { Bell, Sparkles, X, Cross, Smartphone, HelpCircle } from 'lucide-react';
 
@@ -61,6 +62,22 @@ export default function App() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState<boolean>(false);
+
+  // Auto-update check on start (once per day)
+  useEffect(() => {
+    const checkUpdates = async () => {
+      try {
+        const result = await updateService.autoCheckOnStart();
+        if (result?.hasUpdate && result.info) {
+          // La notificación se mostrará en SettingsView cuando el usuario la abra
+          console.log('[UpdateChecker] Nueva versión disponible:', result.info.serverVersionName);
+        }
+      } catch (error) {
+        console.warn('[UpdateChecker] Auto-check falló:', error);
+      }
+    };
+    checkUpdates();
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

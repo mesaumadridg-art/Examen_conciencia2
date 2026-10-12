@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProfileMode, UserSettings } from '../types';
 import { DAYS_OF_WEEK, exportAllDataJSON, importAllDataJSON } from '../lib/storage';
 import { 
@@ -11,6 +11,7 @@ import {
 } from '../lib/notifications';
 import { AppIcon } from './AppIcon';
 import { CustomDatePicker } from './CustomDatePicker';
+import { updateService, type UpdateInfo } from '../services/updateService';
 import { 
   Bell, 
   Moon, 
@@ -51,6 +52,93 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 }) => {
   const [notificationTestStatus, setNotificationTestStatus] = useState<string | null>(null);
   const [backupMessage, setBackupMessage] = useState<string | null>(null);
+
+  // Update checker state
+  const [updateUrl, setUpdateUrl] = useState(() => 
+    localStorage.getItem('examen_conciencia_update_url') || ''
+  );
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [downloadingUpdate, setDownloadingUpdate] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [updateError, setUpdateError] = useState<string | null>(null);
+  const [updateSuccess, setUpdateSuccess] = useState<string | null>(null);
+
+  // Save update URL to localStorage when it changes
+  useEffect(() => {
+    if (updateUrl) {
+      localStorage.setItem('examen_conciencia_update_url', updateUrl);
+      updateService.setUpdateUrl(updateUrl);
+    }
+  }, [updateUrl]);
+
+  const handleCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    setUpdateError(null);
+    setUpdateSuccess(null);
+    try {
+      const result = await updateService.checkForUpdate(false, false);
+      if (result.hasUpdate && result.info) {
+        setUpdateInfo(result.info);
+        setUpdateSuccess('Nueva versión encontrada');
+      } else if (result.info?.skipped) {
+        setUpdateError('Esta versión fue omitida. Usa "Forzar Comprobación" para volver a verla.');
+      } else {
+        setUpdateInfo(null);
+        setUpdateSuccess('No hay actualizaciones disponibles');
+      }
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : 'Error desconocido');
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
+
+  const handleForceCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    setUpdateError(null);
+    setUpdateSuccess(null);
+    try {
+      const result = await updateService.checkForUpdate(true, false);
+      if (result.hasUpdate && result.info) {
+        setUpdateInfo(result.info);
+        setUpdateSuccess('Nueva versión encontrada (forzada)');
+      } else {
+        setUpdateInfo(null);
+        setUpdateSuccess('No hay actualizaciones disponibles');
+      }
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : 'Error desconocido');
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
+
+  const handleDownloadAndInstall = async (apkUrl: string) => {
+    setDownloadingUpdate(true);
+    setUpdateError(null);
+    try {
+      const success = await updateService.downloadAndInstall(apkUrl);
+      if (success) {
+        setUpdateSuccess('Descarga iniciada. Se abrirá el instalador cuando termine.');
+      } else {
+        setUpdateError('Error al iniciar la descarga');
+      }
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : 'Error desconocido');
+    } finally {
+      setDownloadingUpdate(false);
+    }
+  };
+
+  const handleSkipVersion = async (versionCode: number) => {
+    try {
+      await updateService.skipVersion(versionCode);
+      setUpdateInfo(null);
+      setUpdateSuccess(`Versión ${versionCode} omitida`);
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : 'Error al omitir versión');
+    }
+  };
 
   const handleExportBackup = () => {
     try {
@@ -810,12 +898,130 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
 
           {backupMessage && (
-            <p className="text-[11px] font-semibold text-[#C9A227] pt-1 italic">
-              {backupMessage}
-            </p>
-          )}
-        </div>
-      </div>
+                      <p className="text-[11px] font-semibold text-[#C9A227] pt-1 italic">
+                        {backupMessage}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* 5. Actualizaciones de la Aplicación (Opción 2: NAS) */}
+                <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-3">
+                  <div className="flex items-center gap-2 text-[#C9A227] font-semibold text-sm">
+                    <RotateCcw className="w-4 h-4 text-[#C9A227]" />
+                    <span className="text-xs font-semibold uppercase tracking-wider">Actualizaciones desde tu NAS</span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50 dark:bg-black/30 rounded-xl border border-slate-200 dark:border-white/5 space-y-3">
+                    <p className="text-xs text-slate-700 dark:text-white/80 leading-relaxed">
+                      🔄 <strong>Verificar actualizaciones desde tu NAS:</strong> La app consulta tu servidor local (NAS) para detectar nuevas versiones APK y te permite descargarlas e instalarlas con un toque.
+                    </p>
+
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-white/80 mb-1">
+                        URL del archivo update.json en tu NAS:
+                      </label>
+                      <input
+                        type="url"
+                        value={updateUrl}
+                        onChange={(e) => setUpdateUrl(e.target.value)}
+                        placeholder="http://192.168.1.XXX/examen-conciencia/update.json"
+                        className="w-full px-3 py-2 rounded-xl border bg-white dark:bg-black/50 border-slate-200 dark:border-white/10 text-xs font-medium focus:outline-none focus:border-[#C9A227]"
+                      />
+                      <p className="text-[11px] text-slate-500 dark:text-white/50">
+                        Ejemplo: <code className="bg-slate-200 dark:bg-white/10 px-1 rounded">http://192.168.1.100/examen-conciencia/update.json</code>
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                      <button
+                        onClick={handleCheckUpdate}
+                        disabled={checkingUpdate || !updateUrl}
+                        className="flex-1 py-2 px-3 rounded-xl bg-[#C9A227] hover:bg-[#D4B34A] text-black font-semibold text-xs shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                      >
+                        <RotateCcw className={`w-3.5 h-3.5 ${checkingUpdate ? 'animate-spin' : ''}`} />
+                        <span>{checkingUpdate ? 'Comprobando...' : 'Verificar Actualizaciones'}</span>
+                      </button>
+
+                      <button
+                        onClick={handleForceCheckUpdate}
+                        disabled={checkingUpdate || !updateUrl}
+                        className="flex-1 py-2 px-3 rounded-xl bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-slate-800 dark:text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        <span>Forzar Comprobación</span>
+                      </button>
+                    </div>
+
+                    {updateInfo && (
+                      <div className={`p-3 rounded-xl border ${updateInfo.force ? 'bg-red-500/10 border-red-500/30' : 'bg-[#C9A227]/10 border-[#C9A227]/30'}`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-bold text-xs">
+                            {updateInfo.force ? '⚠️ Actualización OBLIGATORIA' : '✨ Nueva versión disponible'}
+                          </span>
+                          <span className="text-[11px] text-slate-500 dark:text-white/50">
+                            v{updateInfo.serverVersionName} (build {updateInfo.serverVersionCode})
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-700 dark:text-white/80 mb-2">
+                          Versión actual: v{updateInfo.currentVersionName} (build {updateInfo.currentVersionCode})
+                        </p>
+                        {updateInfo.changelog && (
+                          <div className="text-[11px] text-slate-600 dark:text-white/70 mb-2 whitespace-pre-line">
+                            {updateInfo.changelog}
+                          </div>
+                        )}
+                        <button
+                          onClick={() => handleDownloadAndInstall(updateInfo.apkUrl)}
+                          disabled={downloadingUpdate}
+                          className="w-full py-2 px-3 rounded-xl bg-[#C9A227] hover:bg-[#D4B34A] text-black font-semibold text-xs shadow-xs transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>{downloadingUpdate ? 'Descargando...' : 'Descargar e Instalar'}</span>
+                        </button>
+                        {!updateInfo.force && (
+                          <button
+                            onClick={() => handleSkipVersion(updateInfo.serverVersionCode)}
+                            className="w-full mt-2 py-1.5 px-3 rounded-xl bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-white font-medium text-xs hover:bg-slate-300 dark:hover:bg-white/20 transition-colors"
+                          >
+                            Omitir esta versión
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {updateError && (
+                      <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30">
+                        <p className="text-[11px] text-red-700 dark:text-red-300 font-medium">
+                          Error: {updateError}
+                        </p>
+                      </div>
+                    )}
+
+                    {updateSuccess && (
+                      <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/30">
+                        <p className="text-[11px] text-green-700 dark:text-green-300 font-medium">
+                          {updateSuccess}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="pt-2 border-t border-slate-200/60 dark:border-white/10">
+                      <p className="text-[11px] text-slate-500 dark:text-white/50 leading-relaxed">
+                        <strong>Formato update.json en tu NAS:</strong>
+                      </p>
+                      <pre className="mt-1 p-2 bg-slate-100 dark:bg-black/40 rounded text-[10px] overflow-x-auto text-slate-700 dark:text-white/80">
+          {`{
+            "versionCode": 12,
+            "versionName": "1.2.0",
+            "url": "http://192.168.1.XXX/examen-conciencia/app-v12.apk",
+            "changelog": "- Corrección en examen de niños\n- Nueva oración para confesión",
+            "force": false
+          }`}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
 
       {onClose && (
         <div className="pt-2">
