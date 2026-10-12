@@ -227,6 +227,21 @@ export default function App() {
   }, [session.answers]);
 
   // Check if today is the designated weekly reminder day (0=Sunday, 4=Thursday, etc.)
+  // Calculate days since last confession
+  const lastRecord = history[0];
+  const effectiveLastConfessionDateStr =
+    lastRecord?.confessionDate ||
+    settings?.lastConfessionDate ||
+    settings?.personalization?.lastConfessionDate;
+
+  const effectiveLastConfessionDate = effectiveLastConfessionDateStr
+    ? new Date(effectiveLastConfessionDateStr)
+    : null;
+
+  const daysSinceLastConfession = effectiveLastConfessionDate
+    ? Math.max(0, Math.floor((Date.now() - effectiveLastConfessionDate.getTime()) / (1000 * 60 * 60 * 24)))
+    : null;
+
   const todayDay = new Date().getDay();
   const isReminderDay = todayDay === settings.reminderDay;
 
@@ -246,30 +261,57 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 pt-5 pb-12">
-        {/* Weekly Day Reminder Alert Banner */}
+        {/* Weekly Day Reminder Alert Banner with unconfessed count and days since last confession */}
         {isReminderDay && !dismissReminderBanner && (
-          <div className="mb-5 bg-[#C9A227]/10 border border-[#C9A227]/30 rounded-2xl p-4 flex items-center justify-between gap-3 text-xs sm:text-sm text-slate-900 dark:text-[#E0E0E0] shadow-[0_0_15px_rgba(201,162,39,0.1)]">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-[#C9A227]/20 text-[#C9A227] shrink-0">
-                <Bell className="w-4 h-4 animate-bounce" />
+          <div className="mb-5 bg-gradient-to-r from-amber-500/15 via-[#C9A227]/10 to-transparent border border-[#C9A227]/40 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs sm:text-sm text-slate-900 dark:text-[#E0E0E0] shadow-[0_0_20px_rgba(201,162,39,0.12)]">
+            <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+              <div className="p-2.5 rounded-xl bg-[#C9A227]/25 text-[#C9A227] shrink-0 mt-0.5 sm:mt-0">
+                <Bell className="w-5 h-5 animate-bounce" />
               </div>
-              <div>
-                <span className="font-bold text-[#C9A227] block">
-                  ¡Hoy es {DAYS_OF_WEEK[todayDay]}, tu día habitual para el examen de conciencia!
-                </span>
-                <span className="opacity-80">
-                  Tómate unos minutos de paz e introspección espiritual antes de acudir al sacramento.
-                </span>
+              <div className="space-y-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-bold text-[#C9A227] text-sm sm:text-base">
+                    ¡Hoy es {DAYS_OF_WEEK[todayDay]}, tu día habitual para confesar!
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-700 dark:text-white/80">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <span className="w-2 h-2 rounded-full bg-[#C9A227]"></span>
+                    Faltas pendientes de confesar:{' '}
+                    <strong className="text-slate-900 dark:text-white font-bold">
+                      {unconfessedCount} {unconfessedCount === 1 ? 'falta' : 'faltas'}
+                    </strong>
+                  </span>
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                    Última confesión:{' '}
+                    <strong className="text-slate-900 dark:text-white font-bold">
+                      {daysSinceLastConfession !== null
+                        ? `hace ${daysSinceLastConfession} ${daysSinceLastConfession === 1 ? 'día' : 'días'}`
+                        : 'sin fecha registrada'}
+                    </strong>
+                  </span>
+                </div>
               </div>
             </div>
 
-            <button
-              onClick={() => setDismissReminderBanner(true)}
-              className="p-1.5 hover:bg-[#C9A227]/20 text-white/60 hover:text-white rounded-lg transition-colors shrink-0"
-              title="Cerrar aviso"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2 self-end md:self-auto shrink-0 w-full sm:w-auto justify-end">
+              {unconfessedCount > 0 && (
+                <button
+                  onClick={() => setActiveTab('resumen')}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#C9A227] hover:bg-[#D4B34A] text-black font-bold text-xs transition-colors shadow-xs"
+                >
+                  Ir a Confesión ({unconfessedCount})
+                </button>
+              )}
+              <button
+                onClick={() => setDismissReminderBanner(true)}
+                className="p-1.5 hover:bg-[#C9A227]/20 text-slate-500 hover:text-slate-900 dark:text-white/60 dark:hover:text-white rounded-lg transition-colors"
+                title="Cerrar aviso"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
 
