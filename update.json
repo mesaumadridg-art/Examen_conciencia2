@@ -1,7 +1,7 @@
 {
-  "versionCode": 14,
-  "versionName": "1.2.1",
-  "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.2.1/Examen_de_Conciencia_v1.2.1.apk",
-  "changelog": "- Ícono de reloj visible en inputs de hora (abre time picker nativo)\n- Time picker nativo corregido (API correcta: present() + value ISO)\n- Notificaciones nativas funcionando\n- Campos de hora con input type='time' (visible y editables)\n- Versión visible en Configuración (v1.2.1)\n- Compilación estable con Java 17\n- Corrección de zona horaria en time picker (getUTCHours)",
+  "versionCode": 15,
+  "versionName": "1.2.2",
+  "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.2.2/Examen_de_Conciencia_v1.2.2.apk",
+  "changelog": "- Ícono de reloj del examen nocturno en posición correcta.\n- Ahora se puede pegar la URL de actualización y el botón se habilita.\n- Time picker nativo corregido (API correcta: present() + value ISO)\n- Notificaciones nativas funcionando\n- Campos de hora con input type='time' (visible y editables)\n- Versión visible en Configuración (v1.2.2)\n- Compilación estable con Java 17\n- Corrección de zona horaria en time picker (getUTCHours)",
   "force": false
 }
