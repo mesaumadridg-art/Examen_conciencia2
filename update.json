@@ -1,7 +1,7 @@
 {
-  "versionCode": 8,
-  "versionName": "1.1.5",
-  "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.1.5/Examen_de_Conciencia_v1.1.5.apk",
-  "changelog": "- Notificaciones nativas usando Web Notification API (funcionan en Capacitor WebView Android)\n- Time picker nativo: botón 🕐 abre selector hora Android\n- DateTimePicker nativo: plugin @capawesome-team/capacitor-datetime-picker\n- Iconos originales restaurados\n- Build estable Java 17\n- Notificaciones usando Web Notification API (funcionan en Capacitor WebView Android)\n- Versión visible en Configuración",
+  "versionCode": 9,
+  "versionName": "1.1.6",
+  "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.1.6/Examen_de_Conciencia_v1.1.6.apk",
+  "changelog": "- Notificaciones nativas Android con @capacitor/local-notifications\n- Selector de hora nativo con @capawesome-team/capacitor-datetime-picker\n- Iconos originales restaurados\n- Versión visible en Configuración (v1.1.6)\n- Compilación estable con Java 17",
   "force": false
 }
