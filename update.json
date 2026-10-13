@@ -1,7 +1,6 @@
 {
-  "versionCode": 17,
-  "versionName": "1.2.4",
-  "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.2.4/Examen_de_Conciencia_v1.2.4.apk",
-  "changelog": "- Fix: pantalla negra en Settings (JSX mismatch)\\n- Limpieza UI: eliminada sección 'Cómo asegurar avisos', botones Google Calendar/.ics, Ícono Oficial, Almacenamiento Local Privado\\n- Click en todo el campo de hora abre picker nativo\\n- Time picker nativo corregido (API correcta: present() + value ISO)\\n- Notificaciones nativas funcionando\\n- Corrección de zona horaria en time picker (getUTCHours)\\n- Compilación estable con Java 17 / AGP 9.4",
-  "force": false
+  "versionCode": 18,
+  "versionName": "1.2.5",
+  "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.2.5/Examen_de_Conciencia_v1.2.5.apk",
+  "changelog": "- Limpieza UI en Configuración: eliminada sección 'Cómo asegurar avisos', botones Google Calendar/.ics, Ícono Oficial, Almacenamiento Local Privado\n- Time picker nativo corregido (click en campo completo)\n- Notificaciones nativas funcionando\n- Corrección de zona horaria en time picker (getUTCHours)\n- Compilación estable con Java 17 / AGP 9.4"
 }
