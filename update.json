@@ -2,6 +2,6 @@
   "versionCode": 13,
   "versionName": "1.2.0",
   "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.2.0/Examen_de_Conciencia_v1.2.0.apk",
-  "changelog": "- Time picker nativo corregido (API correcta: present() + value ISO)\n- Notificaciones nativas funcionando\n- Campos de hora con input type='time' (visible y editables)\n- Versión visible en Configuración (v1.2.0)\n- Compilación estable con Java 17\n- Corrección de zona horaria en time picker",
+  "changelog": "- Time picker nativo corregido (API correcta: present() + value ISO)\n- Notificaciones nativas funcionando\n- Campos de hora con input type='time' (visible y editables)\n- Versión visible en Configuración corregida a v1.2.0 (build 13)\n- Compilación estable con Java 17\n- Corrección de zona horaria en time picker (getUTCHours)",
   "force": false
 }
