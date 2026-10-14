@@ -458,17 +458,20 @@ export const ConfessionSummaryView: React.FC<ConfessionSummaryViewProps> = ({
 
             <div className="space-y-3 pt-2 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 dark:text-white/80 mb-1">
-                  Sacerdote o Templo (Opcional):
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej. Parroquia San José, P. Mateo"
-                  value={priestName}
-                  onChange={(e) => setPriestName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border bg-slate-50 dark:bg-black/40 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-[#C9A227]"
-                />
-              </div>
+                              <label className="block font-semibold text-slate-700 dark:text-white/80 mb-1">
+                                Iglesia / Templo / Sacerdote (Opcional):
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="Ej. Parroquia El Salvador del Mundo, P. Juan Pérez"
+                                value={priestName}
+                                onChange={(e) => setPriestName(e.target.value)}
+                                autoComplete="off"
+                                autoCorrect="off"
+                                spellCheck="false"
+                                className="w-full px-3 py-2 rounded-xl border bg-slate-50 dark:bg-black/40 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-[#C9A227] text-base"
+                              />
+                            </div>
 
               <div>
                 <label className="block font-semibold text-slate-700 dark:text-white/80 mb-1">

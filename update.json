@@ -1,6 +1,6 @@
 {
-  "versionCode": 18,
-  "versionName": "1.2.5",
-  "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.2.5/Examen_de_Conciencia_v1.2.5.apk",
-  "changelog": "- Limpieza UI en Configuración: eliminada sección 'Cómo asegurar avisos', botones Google Calendar/.ics, Ícono Oficial, Almacenamiento Local Privado\n- Time picker nativo corregido (click en campo completo)\n- Notificaciones nativas funcionando\n- Corrección de zona horaria en time picker (getUTCHours)\n- Compilación estable con Java 17 / AGP 9.4"
+  "versionCode": 19,
+  "versionName": "1.2.6",
+  "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.2.6/Examen_de_Conciencia_v1.2.6.apk",
+  "changelog": "- Fix: campo Iglesia/Templo/Sacerdote permite texto largo sin cortarse (ej. 'El Salvador del Mundo')\n- Autocomplete/autocorrect desactivado para evitar salto automático al campo penitencia\n- Label mejorado: 'Iglesia / Templo / Sacerdote'\n- Placeholder ejemplo actualizado\n- v1.2.5: Limpieza UI Configuración + time picker + notificaciones nativas"
 }
