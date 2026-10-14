@@ -1,6 +1,6 @@
 {
-  "versionCode": 19,
-  "versionName": "1.2.6",
-  "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.2.6/Examen_de_Conciencia_v1.2.6.apk",
-  "changelog": "- Fix: campo Iglesia/Templo/Sacerdote permite texto largo sin cortarse (ej. 'El Salvador del Mundo')\n- Autocomplete/autocorrect desactivado para evitar salto automático al campo penitencia\n- Label mejorado: 'Iglesia / Templo / Sacerdote'\n- Placeholder ejemplo actualizado\n- v1.2.5: Limpieza UI Configuración + time picker + notificaciones nativas"
+  "versionCode": 22,
+  "versionName": "1.2.9",
+  "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.2.9/Examen_de_Conciencia_v1.2.9.apk",
+  "changelog": "- Fix: handler onPaste en URL de actualización para habilitar botones\n- Modal flotante en Oraciones con tamaño de letra ajustable\n- Corrección defecto dominante (optional chaining)\n- Limpieza UI Configuración (eliminadas 4 secciones)\n- Campo Iglesia/Templo/Sacerdote permite texto largo\n- Time picker nativo + zona horaria corregida\n- Notificaciones nativas + permisos"
 }
