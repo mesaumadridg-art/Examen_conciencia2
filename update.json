@@ -2,5 +2,5 @@
   "versionCode": 22,
   "versionName": "1.2.9",
   "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.2.9/Examen_de_Conciencia_v1.2.9.apk",
-  "changelog": "- Fix: handler onPaste en URL de actualización para habilitar botones\n- Modal flotante en Oraciones con tamaño de letra ajustable\n- Corrección defecto dominante (optional chaining)\n- Limpieza UI Configuración (eliminadas 4 secciones)\n- Campo Iglesia/Templo/Sacerdote permite texto largo\n- Time picker nativo + zona horaria corregida\n- Notificaciones nativas + permisos"
+  "changelog": "- Configuración limpia: eliminada sección PWA, actualizaciones simplificadas (solo botones Verificar/Forzar)\\n- Oraciones en modal flotante con tamaño de letra ajustable\\n- Fix crash defecto dominante\\n- Splash screen corregido\\n- WebView con file:// support\\n- Vite config sin external (todos @capacitor en bundle)\\n- UI limpia: sin referencias a NAS"
 }
