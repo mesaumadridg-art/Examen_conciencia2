@@ -1,8 +1,55 @@
-node_modules/
-build/
+# Build outputs
 dist/
-coverage/
+build/
+*.apk
+*.aab
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
 .DS_Store
-*.log
-.env*
-!.env.example
+Thumbs.db
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Capacitor
+android/app/build/
+android/app/.cxx/
+android/.gradle/
+android/gradle/wrapper/gradle-wrapper.jar
+
+# Large files
+*.msi
+*.exe
+*.dmg
+*.iso
+
+# Temp files
+*.tmp
+*.temp
+temp_*.json
+parse_questions.ts
+questions_*.json
+*.backup.*
+
+# Docs not for repo
+PLAN_*.md
+PREGUNTAS_CATALOGO.*
+
+# Icons generated
+android/app/src/main/res/app-icon.svg
+android/app/src/main/res/icon-*.png
+android/app/src/main/res/icon-maskable-*.png
+icono_preview.png
+
+# Local keystore (never commit)
+*.keystore
+*.jks
