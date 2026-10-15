@@ -1,13 +1,28 @@
 import React, { useMemo } from 'react';
 import { ConfessionRecord, UserSettings } from '../types';
-import { QUESTIONS, CATEGORIES } from '../data/questionsData';
-import { 
-  BarChart3, 
-  Target, 
-  TrendingUp, 
-  Award, 
-  CheckCircle 
+import { ALL_QUESTIONS, CATEGORIES } from '../data/questionsData';
+import { getAccumulatedStats } from '../lib/storage';
+import { getTopCapitales, getDefectoDominante, inferirCapitalesDesdeRespuestas, inferirCapitalesDesdeCategorias, getDefectoDominanteDesdeCategorias, CapitalScore } from '../lib/capitalInference';
+import {
+  BarChart3,
+  Target,
+  TrendingUp,
+  Award,
+  CheckCircle,
+  CalendarDays,
+  Flame,
+  Leaf,
+  Shield,
+  Heart,
+  Hammer,
+  Eye,
+  BookOpen,
+  Sparkles
 } from 'lucide-react';
+import { Bar, Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, Filler } from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, Filler);
 
 interface StatsViewProps {
   history: ConfessionRecord[];
@@ -51,69 +66,137 @@ export const StatsView: React.FC<StatsViewProps> = ({
   settings,
   onUpdateSettings,
 }) => {
-  // Compute frequent sins and capital sin counts
-  const { capitalSinCounts, frequentQuestions, totalConfessions, penanceRate } = useMemo(() => {
-    const capitalCounts: Record<string, number> = {
-      Soberbia: 0,
-      Avaricia: 0,
-      Lujuria: 0,
-      Ira: 0,
-      Gula: 0,
-      Envidia: 0,
-      Pereza: 0,
-    };
+  const accumulatedStats = getAccumulatedStats();
 
+  // Inferir capitales directamente desde conteo por categoría (sin dummy answers)
+  const inferredCapitalScores: CapitalScore[] = useMemo(() => {
+    return inferirCapitalesDesdeCategorias(
+      accumulatedStats.faltasPorCategoria,
+      accumulatedStats.faltasPorCapital
+    );
+  }, [accumulatedStats]);
+
+  const dominantDefectFound = useMemo(() => {
+    return getDefectoDominanteDesdeCategorias(
+      accumulatedStats.faltasPorCategoria,
+      accumulatedStats.faltasPorCapital
+    );
+  }, [accumulatedStats]);
+
+  const virtInfo = dominantDefectFound ? CAPITAL_SIN_VIRTUES[dominantDefectFound.capital] : CAPITAL_SIN_VIRTUES['Soberbia'];
+
+  // Data para el gráfico de barras de pecados capitales (acumulados)
+  const capitalBarChartData = useMemo(() => {
+    const labels = inferredCapitalScores.map(c => c.capital);
+    const data = inferredCapitalScores.map(c => c.score);
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Faltas Acumuladas',
+          data,
+          backgroundColor: labels.map(label => label === dominantDefectFound?.capital ? 'rgba(201, 162, 39, 0.7)' : 'rgba(75, 192, 192, 0.5)'),
+          borderColor: labels.map(label => label === dominantDefectFound?.capital ? 'rgba(201, 162, 39, 1)' : 'rgba(75, 192, 192, 1)'),
+          borderWidth: 1,
+        },
+      ],
+    };
+  }, [inferredCapitalScores, dominantDefectFound]);
+
+  // Data para el gráfico de barras de faltas por categoría (acumulados)
+  const categoryBarChartData = useMemo(() => {
+    const sortedCategories = Object.entries(accumulatedStats.faltasPorCategoria)
+      .sort(([, countA], [, countB]) => countB - countA);
+    const labels = sortedCategories.map(([catId,]) => CATEGORIES.find(c => c.id === catId)?.title || catId);
+    const data = sortedCategories.map(([, count]) => count);
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Faltas por Mandamiento/Categoría',
+          data,
+          backgroundColor: 'rgba(153, 102, 255, 0.5)',
+          borderColor: 'rgba(153, 102, 255, 1)',
+          borderWidth: 1,
+        },
+      ],
+    };
+  }, [accumulatedStats.faltasPorCategoria]);
+
+    // Heatmap Semanal: últimos 12 semanas × 7 días
+    const weeklyHeatmapData = useMemo(() => {
+      const weeks: string[] = [];
+      const today = new Date();
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i * 7);
+        const year = d.getFullYear();
+        const week = Math.ceil((((d.getTime() - new Date(d.getFullYear(), 0, 1).getTime()) / 86400000) + 1) / 7);
+        weeks.push(`${year}-W${week.toString().padStart(2, '0')}`);
+      }
+
+      const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      const cells: { week: string; day: number; count: number }[] = [];
+
+      weeks.forEach(week => {
+        const weekData = accumulatedStats.heatmapSemanal[week] || {};
+        let total = 0;
+        Object.values(weekData).forEach(c => total += c);
+        days.forEach((day, dayIdx) => {
+          const dayCount = total > 0 ? Math.round(total / 7) : 0;
+          cells.push({ week, day: dayIdx, count: dayCount });
+        });
+      });
+
+      return { weeks, days, cells };
+    }, [accumulatedStats.heatmapSemanal]);
+
+    // Tendencia Diaria: últimos 30 días
+    const dailyTrendChartData = useMemo(() => {
+      const labels: string[] = [];
+      const data: number[] = [];
+      const today = new Date();
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const dayStr = d.toISOString().split('T')[0];
+        labels.push(d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }));
+        data.push(accumulatedStats.tendenciaDiaria[dayStr] || 0);
+      }
+      return {
+        labels,
+        datasets: [{
+          label: 'Faltas por día',
+          data,
+        }],
+      };
+    }, [accumulatedStats.tendenciaDiaria]);
+
+    // Top 5 preguntas recurrentes (ahora de accumulatedStats o history)
+  const frequentQuestions = useMemo(() => {
+    // Usar history para las preguntas recurrentes específicas (acumulatedStats solo cuenta por cat)
     const questionCounts: Record<string, { text: string; count: number; category: string }> = {};
 
     history.forEach((record) => {
       record.sinsList.forEach((sin) => {
-        // Question frequency
         if (!questionCounts[sin.questionId]) {
           questionCounts[sin.questionId] = {
             text: sin.questionText,
             count: 0,
-            category: sin.categoryTitle,
+            category: sin.categoryTitle || 'General',
           };
         }
         questionCounts[sin.questionId].count += 1;
-
-        // Capital sin count
-        if (sin.capitalSinCategory && capitalCounts[sin.capitalSinCategory] !== undefined) {
-          capitalCounts[sin.capitalSinCategory] += 1;
-        }
       });
     });
-
-    const frequentList = Object.values(questionCounts)
+    return Object.values(questionCounts)
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
-
-    const fulfilledPenances = history.filter((h) => h.penanceFulfilled).length;
-    const penancePercentage = history.length > 0 ? Math.round((fulfilledPenances / history.length) * 100) : 0;
-
-    return {
-      capitalSinCounts: capitalCounts,
-      frequentQuestions: frequentList,
-      totalConfessions: history.length,
-      penanceRate: penancePercentage,
-    };
   }, [history]);
 
-  // Identify dominant defect based on counts
-  const dominantDefectFound = useMemo(() => {
-    let max = 0;
-    let defect = 'Soberbia';
-    Object.entries(capitalSinCounts).forEach(([capital, count]) => {
-      const numCount = count as number;
-      if (numCount > max) {
-        max = numCount;
-        defect = capital;
-      }
-    });
-    return max > 0 ? defect : settings.dominantDefect || 'Soberbia';
-  }, [capitalSinCounts, settings.dominantDefect]);
-
-  const virtInfo = CAPITAL_SIN_VIRTUES[dominantDefectFound] || CAPITAL_SIN_VIRTUES['Soberbia'];
+  const totalConfessions = history.length;
+  const fulfilledPenances = history.filter((h) => h.penanceFulfilled).length;
+  const penanceRate = history.length > 0 ? Math.round((fulfilledPenances / history.length) * 100) : 0;
 
   return (
     <div className="space-y-6 pb-20 max-w-5xl mx-auto">
@@ -142,7 +225,7 @@ export const StatsView: React.FC<StatsViewProps> = ({
         <div className="flex items-center gap-2.5 text-[#C9A227] pt-1">
           <Target className="w-5 h-5 text-[#C9A227]" />
           <h3 className="text-lg font-serif italic text-white">
-            Defecto Dominante Identificado: <span className="text-[#C9A227] not-italic font-semibold">{dominantDefectFound}</span>
+            Defecto Dominante Identificado: <span className="text-[#C9A227] not-italic font-semibold">{dominantDefectFound?.capital || 'Ninguno (aún)'}</span>
           </h3>
         </div>
 
@@ -189,53 +272,62 @@ export const StatsView: React.FC<StatsViewProps> = ({
 
         <div className="bg-white dark:bg-[#141415] border border-slate-200 dark:border-white/5 p-4 rounded-2xl">
           <span className="text-xs text-slate-500 dark:text-white/40 font-medium">
-            Faltas Más Recurrentes
+            Faltas Acumuladas (Exámenes)
           </span>
           <p className="text-2xl font-serif italic text-[#C9A227] mt-1">
-            {frequentQuestions.length} identificadas
+            {Object.values(accumulatedStats.faltasPorCategoria).reduce((acc, count) => acc + count, 0)} identificadas
           </p>
         </div>
       </div>
 
       {/* Breakdown Grids */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Capital Sins Distribution */}
+        {/* Capital Sins Distribution (Bar Chart) */}
         <div className="bg-white dark:bg-[#141415] border border-slate-200 dark:border-white/10 p-5 rounded-2xl space-y-4">
           <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#C9A227] border-b border-slate-100 dark:border-white/5 pb-2">
-            Desglose por 7 Pecados Capitales
+            Distribución por 7 Pecados Capitales
           </h3>
-
-          <div className="space-y-3">
-            {Object.entries(capitalSinCounts).map(([capital, count]) => {
-              const numCount = count as number;
-              const countsArray = Object.values(capitalSinCounts) as number[];
-              const maxCount = Math.max(...countsArray, 1);
-              const percentage = Math.round((numCount / maxCount) * 100);
-
-              return (
-                <div key={capital} className="space-y-1">
-                  <div className="flex justify-between text-xs font-medium">
-                    <span className="text-slate-800 dark:text-white/80">{capital}</span>
-                    <span className="text-[#C9A227] font-semibold">{count} faltas</span>
-                  </div>
-                  <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-300 ${
-                        capital === dominantDefectFound ? 'bg-[#C9A227] shadow-[0_0_8px_rgba(201,162,39,0.4)]' : 'bg-slate-400 dark:bg-white/20'
-                      }`}
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {inferredCapitalScores.length === 0 ? (
+            <p className="text-xs text-slate-500 dark:text-white/40 italic py-6 text-center">
+              A medida que marques faltas en tus exámenes, aparecerá la distribución de los pecados capitales.
+            </p>
+          ) : (
+            <Bar data={capitalBarChartData} options={{
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+                title: { display: false },
+              },
+              indexAxis: 'y',
+            }} />
+          )}
         </div>
 
-        {/* Top 5 Recurring Questions */}
+        {/* Faltas por Mandamiento/Categoría (Bar Chart) */}
         <div className="bg-white dark:bg-[#141415] border border-slate-200 dark:border-white/10 p-5 rounded-2xl space-y-4">
           <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#C9A227] border-b border-slate-100 dark:border-white/5 pb-2">
-            Pecados Recurrentes (Top 5)
+            Faltas por Mandamiento / Categoría
+          </h3>
+          {Object.keys(accumulatedStats.faltasPorCategoria).length === 0 ? (
+            <p className="text-xs text-slate-500 dark:text-white/40 italic py-6 text-center">
+              Realiza tu examen de conciencia para ver tus faltas distribuidas por cada mandamiento o área de la vida.
+            </p>
+          ) : (
+            <Bar data={categoryBarChartData} options={{
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+                title: { display: false },
+              },
+              indexAxis: 'y',
+            }} />
+          )}
+        </div>
+
+        {/* Top 5 Recurring Questions (from history for now) */}
+        <div className="bg-white dark:bg-[#141415] border border-slate-200 dark:border-white/10 p-5 rounded-2xl space-y-4 md:col-span-2">
+          <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#C9A227] border-b border-slate-100 dark:border-white/5 pb-2">
+            Pecados Recurrentes (Top 5 en Confesiones)
           </h3>
 
           {frequentQuestions.length === 0 ? (
@@ -265,7 +357,99 @@ export const StatsView: React.FC<StatsViewProps> = ({
             </ul>
           )}
         </div>
-      </div>
-    </div>
+
+        {/* Heatmap Semanal (CSS Grid Real) */}
+                <div className="bg-white dark:bg-[#141415] border border-slate-200 dark:border-white/10 p-5 rounded-2xl space-y-4 md:col-span-2">
+                  <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#C9A227] border-b border-slate-100 dark:border-white/5 pb-2">
+                    Frecuencia Semanal de Faltas (Heatmap)
+                  </h3>
+                  {weeklyHeatmapData.cells.every(c => c.count === 0) ? (
+                    <p className="text-xs text-slate-500 dark:text-white/40 italic py-6 text-center">
+                      Realiza exámenes de conciencia para ver tu mapa de calor semanal.
+                    </p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <div className="grid grid-cols-13 gap-1 min-w-max">
+                        {/* Header: empty + days */}
+                        <div className="text-xs font-semibold text-slate-500 dark:text-white/40 text-center py-1 px-2"></div>
+                        {weeklyHeatmapData.days.map(day => (
+                          <div key={day} className="text-xs font-semibold text-slate-500 dark:text-white/40 text-center py-1 px-2">
+                            {day}
+                          </div>
+                        ))}
+                        {/* Weeks rows */}
+                        {weeklyHeatmapData.weeks.map((week, weekIdx) => (
+                          <React.Fragment key={week}>
+                            <div className="text-[9px] text-slate-500 dark:text-white/40 text-right py-1 px-2 pr-4 align-middle">
+                              {week}
+                            </div>
+                            {weeklyHeatmapData.days.map((day, dayIdx) => {
+                              const cell = weeklyHeatmapData.cells.find(c => c.week === week && c.day === dayIdx);
+                              const count = cell?.count || 0;
+                              const intensity = count > 0 ? Math.min(count / 5, 1) : 0;
+                              const bgColor = intensity > 0
+                                ? `rgba(201, 162, 39, ${0.15 + intensity * 0.7})`
+                                : 'rgba(255,255,255,0.03)';
+                              const borderColor = intensity > 0 ? 'rgba(201, 162, 39, 0.3)' : 'rgba(255,255,255,0.05)';
+                              return (
+                                <div
+                                  key={dayIdx}
+                                  className="aspect-square rounded-sm border transition-colors"
+                                  style={{ backgroundColor: bgColor, borderColor }}
+                                  title={`${day} semana ${week}: ${count} faltas`}
+                                />
+                              );
+                            })}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {/* Legend */}
+                  <div className="flex items-center gap-2 text-[9px] text-slate-500 dark:text-white/40">
+                    <span>Menos</span>
+                    <div className="flex gap-1">
+                      {[0, 0.25, 0.5, 0.75, 1].map((int, i) => (
+                        <div
+                          key={i}
+                          className="w-5 h-5 rounded-sm border"
+                          style={{ backgroundColor: `rgba(201, 162, 39, ${0.15 + int * 0.7})`, borderColor: int > 0 ? 'rgba(201, 162, 39, 0.3)' : 'rgba(255,255,255,0.05)' }}
+                        />
+                      ))}
+                    </div>
+                    <span>Más</span>
+                  </div>
+                </div>
+
+                {/* Tendencia Diaria */}
+                <div className="bg-white dark:bg-[#141415] border border-slate-200 dark:border-white/10 p-5 rounded-2xl space-y-4 md:col-span-2">
+                  <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#C9A227] border-b border-slate-100 dark:border-white/5 pb-2">
+                    Tendencia Diaria de Faltas
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-white/40 italic py-1 text-center">
+                    Total de faltas registradas cada día durante las últimas semanas.
+                  </p>
+                  <div className="h-48">
+                    <Line data={dailyTrendChartData} options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false },
+                        title: { display: false },
+                      },
+                      scales: {
+                        x: { ticks: { color: '#A1A1AA' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { color: '#A1A1AA' }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true },
+                      },
+                      elements: {
+                        line: { tension: 0.3, borderColor: '#C9A227', borderWidth: 2, fill: true, backgroundColor: 'rgba(201, 162, 39, 0.2)' },
+                        point: { radius: 3, backgroundColor: '#C9A227', borderColor: '#fff', borderWidth: 1 }
+                      }
+                    }} />
+                  </div>
+                </div>
+
+              </div>
+            </div>
   );
 };

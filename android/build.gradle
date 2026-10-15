@@ -7,7 +7,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.0'
+        classpath 'com.android.tools.build:gradle:9.4.1'
         classpath 'com.google.gms:google-services:4.4.4'
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -24,7 +24,7 @@ allprojects {
     }
 }
 
-// Forzar Java 17 en TODOS los subproyectos (incluye capacitor-android de node_modules)
+// Forzar Java 17 EN TODOS los submódulos (incluye capacitor-android y plugins)
 subprojects {
     afterEvaluate { project ->
         if (project.plugins.hasPlugin('com.android.library') || project.plugins.hasPlugin('com.android.application')) {

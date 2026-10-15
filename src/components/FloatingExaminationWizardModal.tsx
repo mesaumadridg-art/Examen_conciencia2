@@ -81,8 +81,10 @@ export const FloatingExaminationWizardModal: React.FC<FloatingExaminationWizardM
   }, [personalizedQuestions, currentWizardIndex]);
 
   // Current question & answer
-  const currentQuestion = personalizedQuestions[currentWizardIndex] || personalizedQuestions[0];
-  const currentQuestionAnswer = currentQuestion ? session.answers[currentQuestion.id] : undefined;
+    const currentQuestion = personalizedQuestions.length > 0
+      ? (personalizedQuestions[currentWizardIndex] || personalizedQuestions[0])
+      : undefined;
+    const currentQuestionAnswer = currentQuestion ? session.answers[currentQuestion.id] : undefined;
   const isCurrentAnswered = Boolean(currentQuestionAnswer && currentQuestionAnswer.status);
 
   // Sync note input when wizard question changes

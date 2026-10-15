@@ -2,23 +2,24 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { CATEGORIES, ALL_QUESTIONS, filterQuestionsByPersonalization } from '../data/questionsData';
 import { AnswerStatus, ExaminationSession, ProfileMode, UserAnswer, UserPersonalization } from '../types';
 import { PersonalizationWizardModal, DEFAULT_PERSONALIZATION } from './PersonalizationWizardModal';
-import { 
-  CheckCircle2, 
-  AlertTriangle, 
-  XCircle, 
-  Info, 
-  Search, 
-  RotateCcw, 
-  ChevronRight, 
+import { getDefectoDominante } from '../lib/capitalInference';
+import {
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Info,
+  Search,
+  RotateCcw,
+  ChevronRight,
   ChevronLeft,
-  Cross, 
-  HeartHandshake, 
-  ShieldAlert, 
-  Sparkles, 
-  Scale, 
-  MessageSquare, 
-  Briefcase, 
-  Target, 
+  Cross,
+  HeartHandshake,
+  ShieldAlert,
+  Sparkles,
+  Scale,
+  MessageSquare,
+  Briefcase,
+  Target,
   HandHeart,
   FileEdit,
   Filter,
@@ -32,6 +33,37 @@ import {
   FileText,
   HelpCircle
 } from 'lucide-react';
+
+const CAPITAL_SIN_VIRTUES: Record<string, { virtue: string; advice: string }> = {
+  Soberbia: {
+    virtue: 'Humildad y Sinceridad',
+    advice: 'Practica el examen particular diario, busca la discreción en tus buenas obras y aprende a recibir correcciones con gratitud.',
+  },
+  Avaricia: {
+    virtue: 'Generosidad y Desprendimiento',
+    advice: 'Da limosna oculta con alegría, desprende cosas materiales que acumulas e invierte tiempo en ayudar al prójimo.',
+  },
+  Lujuria: {
+    virtue: 'Castidad y Custodia de los Sentidos',
+    advice: 'Protege tu mirada y memoria, evita las ocasiones próximas de pecado en internet/redes y acude frecuentemente a la Eucaristía.',
+  },
+  Ira: {
+    virtue: 'Paciencia y Mansedumbre',
+    advice: 'Tómate 10 segundos antes de responder con ira, encomienda a quienes te molestan en la oración y pide perdón de inmediato.',
+  },
+  Gula: {
+    virtue: 'Templanza y Sobriedad',
+    advice: 'Ofrece pequeñas mortificaciones discretas en la comida y bebida, y cultiva el dominio propio en el uso de pantallas.',
+  },
+  Envidia: {
+    virtue: 'Caridad y Benevolencia',
+    advice: 'Felicita sinceramente a los demás por sus éxitos y da gracias a Dios por los talentos que ha repartido a tu alrededor.',
+  },
+  Pereza: {
+    virtue: 'Diligencia y Fervor Espiritual',
+    advice: 'Comienza el día con puntualidad, cumple tu deber de estado sin retrasos y pon horarios fijos a tu oración personal.',
+  },
+};
 
 interface ExaminationViewProps {
   session: ExaminationSession;
@@ -107,8 +139,10 @@ export const ExaminationView: React.FC<ExaminationViewProps> = ({
   }, [personalizedQuestions, currentWizardIndex]);
 
   // Current question in wizard mode
-  const currentQuestion = personalizedQuestions[currentWizardIndex] || personalizedQuestions[0];
-  const currentQuestionAnswer = currentQuestion ? session.answers[currentQuestion.id] : undefined;
+    const currentQuestion = personalizedQuestions.length > 0
+      ? (personalizedQuestions[currentWizardIndex] || personalizedQuestions[0])
+      : undefined;
+    const currentQuestionAnswer = currentQuestion ? session.answers[currentQuestion.id] : undefined;
   const isCurrentAnswered = Boolean(currentQuestionAnswer && currentQuestionAnswer.status);
 
   // Sync note input when current wizard question changes
@@ -151,7 +185,14 @@ export const ExaminationView: React.FC<ExaminationViewProps> = ({
 
   const progressPercent = totalQuestionsCount > 0 ? Math.round((answeredCount / totalQuestionsCount) * 100) : 0;
 
-  // Wizard navigation handlers
+    // Dominant Defect (Real-time during examination)
+    const dominantDefect = useMemo(() => {
+      return getDefectoDominante(session.answers as any, ALL_QUESTIONS);
+    }, [session.answers]);
+
+    const virtInfo = dominantDefect ? CAPITAL_SIN_VIRTUES[dominantDefect.capital] : CAPITAL_SIN_VIRTUES['Soberbia'];
+
+    // Wizard navigation handlers
   const handleAnswerAndNext = (status: AnswerStatus) => {
     if (!currentQuestion) return;
     setPendingWarning(false);
@@ -282,9 +323,36 @@ export const ExaminationView: React.FC<ExaminationViewProps> = ({
               </button>
             </div>
           </div>
-        </div>
+                  </div>
 
-        {/* Interactive Active Profile Chips Badge Card */}
+                  {/* Dominant Defect Banner (Real-time during examination) */}
+                  <div className="bg-[#141415] border border-[#C9A227]/30 rounded-2xl p-4 shadow-lg relative">
+                    <span className="absolute -top-2.5 left-6 px-3 py-0.5 bg-[#C9A227] text-black text-[9px] font-bold uppercase tracking-widest rounded-full shadow-[0_0_10px_rgba(201,162,39,0.3)]">
+                      Defecto Dominante Actual
+                    </span>
+
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <Target className="w-5 h-5 text-[#C9A227]" />
+                        <div>
+                          <p className="text-xs font-semibold text-[#C9A227] uppercase tracking-wider">
+                            Tu talón de Aquiles en este examen:
+                          </p>
+                          <p className="text-lg font-serif italic text-white">
+                                                      <span className="text-[#C9A227] not-italic font-semibold">{dominantDefect?.capital || 'Sin faltas marcadas aún'}</span>
+                                                    </p>
+                        </div>
+                      </div>
+
+                      <div className="bg-white/80 dark:bg-black/30 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/5 shrink-0">
+                        <p className="text-xs font-serif text-slate-700 dark:text-white/80 leading-snug italic">
+                          «{virtInfo.advice}»
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Interactive Active Profile Chips Badge Card */}
         <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/5 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-bold text-slate-700 dark:text-white/80 shrink-0">

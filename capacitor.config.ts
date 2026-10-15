@@ -3,8 +3,8 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.examenconciencia.app',
   appName: 'Examen de Conciencia',
-  versionName: '1.2.6',
-  versionCode: 19,
+  versionName: '1.2.9',
+  versionCode: 22,
   webDir: 'dist',
   server: {
     androidScheme: 'https'
@@ -12,7 +12,7 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: false
+    webContentsDebuggingEnabled: true
   },
   plugins: {
     SplashScreen: {

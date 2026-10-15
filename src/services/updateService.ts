@@ -1,5 +1,7 @@
 import { UpdateChecker, type UpdateInfo, type CheckUpdateOptions } from '../plugins';
 
+const UPDATE_JSON_URL = 'https://raw.githubusercontent.com/mesaumadridg-art/Examen_conciencia2/main/update.json';
+
 const UPDATE_CHECK_KEY = 'examen_conciencia_update_check';
 
 export interface UpdateCheckResult {
@@ -10,13 +12,9 @@ export interface UpdateCheckResult {
 
 export class UpdateService {
   private static instance: UpdateService;
-  private updateUrl: string;
 
   private constructor() {
-    // URL del JSON de actualizaciones en tu NAS
-    // Ejemplo: http://192.168.1.100/examen-conciencia/update.json
-    // O HTTPS si tienes certificado: https://nas.tu-dominio.com/examen-conciencia/update.json
-    this.updateUrl = import.meta.env.VITE_UPDATE_URL || '';
+    // Hardcoded URL - no configuration needed
   }
 
   static getInstance(): UpdateService {
@@ -26,18 +24,10 @@ export class UpdateService {
     return UpdateService.instance;
   }
 
-  setUpdateUrl(url: string) {
-    this.updateUrl = url;
-  }
-
   async checkForUpdate(force = false, silent = false): Promise<UpdateCheckResult> {
-    if (!this.updateUrl) {
-      return { hasUpdate: false, info: null, error: 'Update URL not configured' };
-    }
-
     try {
       const info = await UpdateChecker.checkForUpdate({
-        updateUrl: this.updateUrl,
+        updateUrl: UPDATE_JSON_URL,
         force,
         silent,
       });

@@ -3,6 +3,7 @@ import { ConfessionRecord, ExaminationSession, ProfileMode, UserSettings } from 
 const SETTINGS_KEY = 'examen_confesion_settings_v1';
 const CURRENT_SESSION_KEY = 'examen_confesion_session_v1';
 const HISTORY_KEY = 'examen_confesion_history_v1';
+const ACCUMULATED_STATS_KEY = 'examen_confesion_accumulated_stats_v1';
 
 export const DEFAULT_SETTINGS: UserSettings = {
   dailyExamReminderEnabled: true,
@@ -177,3 +178,127 @@ export const DAYS_OF_WEEK = [
   'Viernes',
   'Sábado',
 ];
+
+// ==================== ESTADÍSTICAS ACUMULADAS (persisten entre exámenes) ====================
+
+export interface AccumulatedStats {
+  // Conteo total de faltas por categoría (mandamiento)
+  faltasPorCategoria: Record<string, number>;
+  // Conteo total de faltas por pecado capital (inferido + explícito)
+  faltasPorCapital: Record<string, number>;
+  // Historial semanal para heatmap: YYYY-WW -> { categoria: count }
+  heatmapSemanal: Record<string, Record<string, number>>;
+  // Historial diario para tendencia: YYYY-MM-DD -> total faltas
+  tendenciaDiaria: Record<string, number>;
+  // Última actualización
+  updatedAt: string;
+  // Versión del esquema
+  version: number;
+}
+
+const DEFAULT_ACCUMULATED_STATS: AccumulatedStats = {
+  faltasPorCategoria: {},
+  faltasPorCapital: {},
+  heatmapSemanal: {},
+  tendenciaDiaria: {},
+  updatedAt: new Date().toISOString(),
+  version: 1,
+};
+
+export function getAccumulatedStats(): AccumulatedStats {
+  try {
+    const raw = localStorage.getItem(ACCUMULATED_STATS_KEY);
+    if (!raw) return DEFAULT_ACCUMULATED_STATS;
+    const parsed = JSON.parse(raw);
+    // Migración si falta algún campo
+    return {
+      ...DEFAULT_ACCUMULATED_STATS,
+      ...parsed,
+      faltasPorCategoria: parsed.faltasPorCategoria || {},
+      faltasPorCapital: parsed.faltasPorCapital || {},
+      heatmapSemanal: parsed.heatmapSemanal || {},
+      tendenciaDiaria: parsed.tendenciaDiaria || {},
+    };
+  } catch (e) {
+    console.error('Error reading accumulated stats', e);
+    return DEFAULT_ACCUMULATED_STATS;
+  }
+}
+
+export function saveAccumulatedStats(stats: AccumulatedStats): void {
+  try {
+    stats.updatedAt = new Date().toISOString();
+    localStorage.setItem(ACCUMULATED_STATS_KEY, JSON.stringify(stats));
+  } catch (e) {
+    console.error('Error saving accumulated stats', e);
+  }
+}
+
+/**
+ * Actualiza las estadísticas acumuladas con una nueva falta marcada
+ */
+export function updateAccumulatedStats(
+  questionId: string,
+  status: 'leve' | 'grave' | 'none',
+  categoryId: string,
+  capitalSinCategory?: string,
+  questions?: import('../types').QuestionItem[]
+): void {
+  if (status === 'none') return; // Solo acumular faltas reales
+  
+  const stats = getAccumulatedStats();
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  const weekStr = getWeekString(now); // YYYY-WW
+  
+  // 1. Categoría (mandamiento)
+  stats.faltasPorCategoria[categoryId] = (stats.faltasPorCategoria[categoryId] || 0) + 1;
+  
+  // 2. Capital explícito (si la pregunta lo tiene)
+  if (capitalSinCategory) {
+    stats.faltasPorCapital[capitalSinCategory] = (stats.faltasPorCapital[capitalSinCategory] || 0) + 1;
+  }
+  
+  // 3. Heatmap semanal por categoría
+  if (!stats.heatmapSemanal[weekStr]) {
+    stats.heatmapSemanal[weekStr] = {};
+  }
+  stats.heatmapSemanal[weekStr][categoryId] = (stats.heatmapSemanal[weekStr][categoryId] || 0) + 1;
+  
+  // 4. Tendencia diaria (total faltas ese día)
+  stats.tendenciaDiaria[todayStr] = (stats.tendenciaDiaria[todayStr] || 0) + 1;
+  
+  // 5. Inferir capitales desde categorías (para stats completas sin capital explícito)
+  // Se hace en StatsView usando capitalInference, aquí solo guardamos lo directo
+  
+  saveAccumulatedStats(stats);
+}
+
+/**
+ * Obtiene string de semana ISO: YYYY-WW
+ */
+function getWeekString(date: Date): string {
+  const year = date.getFullYear();
+  const week = getISOWeek(date);
+  return `${year}-W${week.toString().padStart(2, '0')}`;
+}
+
+function getISOWeek(date: Date): number {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return weekNo;
+}
+
+/**
+ * Limpia estadísticas acumuladas (útil para testing o reset manual)
+ */
+export function clearAccumulatedStats(): void {
+  try {
+    localStorage.removeItem(ACCUMULATED_STATS_KEY);
+  } catch (e) {
+    console.error('Error clearing accumulated stats', e);
+  }
+}

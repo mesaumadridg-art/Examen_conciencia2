@@ -1,56 +1,43 @@
 import { UserSettings } from '../types';
+import { DatetimePicker } from '@capawesome-team/capacitor-datetime-picker';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 export interface NotificationStatusInfo {
   supported: boolean;
-  permission: NotificationPermission | 'unsupported';
+  permission: 'granted' | 'denied' | 'default' | 'unsupported';
   serviceWorkerActive: boolean;
   error?: string;
 }
 
-/**
- * Checks system notification capabilities and permission status.
- */
-export function checkNotificationStatus(): NotificationStatusInfo {
-  if (!('Notification' in window)) {
-    return {
-      supported: false,
-      permission: 'unsupported',
-      serviceWorkerActive: false,
-      error: 'Tu navegador no soporta Notificaciones Web.',
-    };
-  }
-
-  const swActive = 'serviceWorker' in navigator && !!navigator.serviceWorker.controller;
-
-  return {
-    supported: true,
-    permission: Notification.permission,
-    serviceWorkerActive: swActive,
-  };
+export interface ReminderSettings {
+  dailyExamEnabled: boolean;
+  dailyExamTime: string;
+  confessionEnabled: boolean;
+  confessionFrequency: 'weekly' | 'biweekly' | 'monthly';
+  confessionDay: number;
 }
 
 /**
- * Requests Notification permission from the browser/OS.
+ * Requests Notification permission from the native system.
+ * Uses Capacitor LocalNotifications plugin.
  */
-export async function requestNotificationPermission(): Promise<NotificationPermission> {
-  if (!('Notification' in window)) {
-    throw new Error('Las notificaciones no son soportadas en este dispositivo.');
-  }
-
-  const permission = await Notification.requestPermission();
-  if (permission === 'granted' && 'serviceWorker' in navigator) {
-    const reg = await navigator.serviceWorker.ready;
-    if (reg) {
-      console.log('ServiceWorker ready for background notifications.');
+export async function requestNotificationPermission(): Promise<'granted' | 'denied' | 'default'> {
+  try {
+    const result = await LocalNotifications.requestPermissions();
+    return result.display;
+  } catch (e) {
+    // Fallback to web API
+    if (!('Notification' in window)) {
+      throw new Error('Las notificaciones no son soportadas en este dispositivo.');
     }
+    return await Notification.requestPermission();
   }
-  return permission;
 }
 
 /**
- * Sends a message to the Service Worker to update scheduled reminders or trigger test notifications.
+ * Sends a message to the Service Worker to update scheduled reminders.
  */
-export async function syncRemindersWithServiceWorker(settings: UserSettings): Promise<boolean> {
+export async function syncRemindersWithServiceWorker(settings: any): Promise<boolean> {
   if (!('serviceWorker' in navigator)) return false;
 
   try {
@@ -95,6 +82,7 @@ export async function syncRemindersWithServiceWorker(settings: UserSettings): Pr
     }
   } catch (err) {
     console.warn('Error syncing reminders with Service Worker:', err);
+    return false;
   }
   return false;
 }
@@ -179,33 +167,32 @@ export function downloadDailyICSFile(timeStr = '21:00'): void {
   const icsContent = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//ExamenConcienciaApp//NONSGML v1.0//ES',
+    'PRODID:-//Examen de Conciencia//ES',
     'BEGIN:VEVENT',
+    `UID:examen-diario-${Date.now()}@examenconciencia.app`,
+    `DTSTAMP:${formatIcsTime(new Date())}`,
     `DTSTART:${formatIcsTime(startDate)}`,
     `DTEND:${formatIcsTime(new Date(startDate.getTime() + 15 * 60 * 1000))}`,
     'RRULE:FREQ=DAILY',
     'SUMMARY:🕯️ Examen de Conciencia Nocturno',
     'DESCRIPTION:Tómate 2 minutos de calma para revisar las faltas del día en la app Examen de Conciencia.',
-    'BEGIN:VALARM',
-    'TRIGGER:-PT0M',
-    'ACTION:DISPLAY',
-    'DESCRIPTION:Examen de Conciencia Nocturno',
-    'END:VALARM',
     'END:VEVENT',
-    'END:VCALENDAR'
+    'END:VCALENDAR',
   ].join('\r\n');
 
   const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-  const link = document.createElement('a');
-  link.href = window.URL.createObjectURL(blob);
-  link.setAttribute('download', 'recordatorio_examen_diario.ics');
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'examen-diario.ics';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /**
- * Downloads an .ics calendar file for Periodic Confession Reminder.
+ * Downloads an .ics calendar file for the device's native calendar for Confession reminder.
  */
 export function downloadConfessionICSFile(
   frequency: 'weekly' | 'biweekly' | 'monthly' = 'weekly',
@@ -216,6 +203,7 @@ export function downloadConfessionICSFile(
   const now = new Date();
   const startDate = new Date();
 
+  // Calculate days until target day of week (0 = Sunday, 1 = Monday, etc.)
   let daysUntilTarget = (dayOfWeek - now.getDay() + 7) % 7;
   startDate.setDate(now.getDate() + daysUntilTarget);
   startDate.setHours(hours, minutes, 0, 0);
@@ -238,67 +226,206 @@ export function downloadConfessionICSFile(
   const icsContent = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//ExamenConcienciaApp//NONSGML v1.0//ES',
+    'PRODID:-//Examen de Conciencia//ES',
     'BEGIN:VEVENT',
+    `UID:confesion-${frequency}-${Date.now()}@examenconciencia.app`,
+    `DTSTAMP:${formatIcsTime(new Date())}`,
     `DTSTART:${formatIcsTime(startDate)}`,
     `DTEND:${formatIcsTime(new Date(startDate.getTime() + 30 * 60 * 1000))}`,
     rrule,
-    `SUMMARY:✝️ Recordatorio: Día de Confesión (${freqLabel})`,
+    `SUMMARY:✝️ Recordatorio: Día de Confesión`,
     'DESCRIPTION:Día programado para acudir al sacerdote o templo. Revisa tu resumen de faltas acumuladas en la app Examen de Conciencia.',
-    'BEGIN:VALARM',
-    'TRIGGER:-PT0M',
-    'ACTION:DISPLAY',
-    'DESCRIPTION:Confesión Sacramental',
-    'END:VALARM',
     'END:VEVENT',
-    'END:VCALENDAR'
+    'END:VCALENDAR',
   ].join('\r\n');
 
   const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-  const link = document.createElement('a');
-  link.href = window.URL.createObjectURL(blob);
-  link.setAttribute('download', `recordatorio_confesion_${frequency}.ics`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `confesion-${frequency}.ics`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /**
- * Triggers a test system notification via Service Worker (native Android notification).
+ * Schedules native local notifications for daily exam and confession reminders.
+ * Uses Capacitor LocalNotifications plugin.
  */
-export async function sendTestNotification(): Promise<boolean> {
-  if (!('Notification' in window)) return false;
-
-  if (Notification.permission !== 'granted') {
-    const perm = await requestNotificationPermission();
-    if (perm !== 'granted') return false;
-  }
-
+export async function scheduleAllReminders(settings: UserSettings): Promise<boolean> {
   try {
-    // Try via Service Worker Registration first (native system notification on Android)
-    if ('serviceWorker' in navigator) {
-      const reg = await navigator.serviceWorker.ready;
-      if (reg && reg.showNotification) {
-        await reg.showNotification('🔔 Examen de Conciencia (Prueba)', {
-          body: '¡Excelente! Las notificaciones nativas de la aplicación están funcionando correctamente en tu dispositivo.',
-          icon: '/icon-192.png',
-          badge: '/favicon-32x32.png',
-          vibrate: [200, 100, 200],
-          tag: 'test-notification',
-          data: { url: '/' },
-        } as unknown as NotificationOptions);
-        return true;
+    // Cancel all existing notifications first
+    await LocalNotifications.cancel({ notifications: [
+      { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 999 }
+    ] });
+
+    const notifications: any[] = [];
+
+    // Daily exam reminder
+    if (settings.dailyExamReminderEnabled ?? settings.reminderEnabled) {
+      const time = settings.dailyExamReminderTime || settings.reminderTime || '21:00';
+      const [hours, minutes] = time.split(':').map(Number);
+      
+      const now = new Date();
+      const scheduledDate = new Date();
+      scheduledDate.setHours(hours, minutes, 0, 0);
+      
+      // If time already passed today, schedule for tomorrow
+      if (scheduledDate.getTime() <= Date.now()) {
+        scheduledDate.setDate(scheduledDate.getDate() + 1);
+      }
+
+      notifications.push({
+        title: '🕯️ Examen de Conciencia Nocturno',
+        body: 'Tómate 2 minutos de calma para revisar las faltas del día.',
+        id: 1,
+        schedule: { at: scheduledDate, repeats: true },
+        sound: 'default',
+        attachments: undefined,
+        actionTypeId: 'OPEN_APP',
+        extra: { type: 'daily_exam' },
+      });
+    }
+
+    // Confession reminder
+    if (settings.confessionReminderEnabled ?? true) {
+      const time = settings.confessionReminderTime || '18:00';
+      const [hours, minutes] = time.split(':').map(Number);
+      const frequency = settings.confessionReminderFrequency || 'weekly';
+      const day = settings.confessionReminderDay ?? settings.reminderDay ?? 0; // 0 = Sunday
+
+      const now = new Date();
+      let daysUntilTarget = (day - now.getDay() + 7) % 7;
+      const scheduledDate = new Date();
+      scheduledDate.setDate(now.getDate() + daysUntilTarget);
+      scheduledDate.setHours(hours, minutes, 0, 0);
+
+      if (scheduledDate.getTime() <= Date.now()) {
+        scheduledDate.setDate(scheduledDate.getDate() + 7);
+      }
+
+      if (frequency === 'weekly') {
+        notifications.push({
+          title: '✝️ Recordatorio: Día de Confesión',
+          body: 'Día programado para acudir al sacerdote. Revisa tu resumen de faltas.',
+          id: 2,
+          schedule: { at: scheduledDate, every: 'week' },
+          sound: 'default',
+          extra: { type: 'confession' },
+        });
+      } else if (frequency === 'biweekly') {
+        notifications.push({
+          title: '✝️ Recordatorio: Día de Confesión',
+          body: 'Día programado para acudir al sacerdote. Revisa tu resumen de faltas.',
+          id: 3,
+          schedule: { at: scheduledDate, every: 'week', count: 2 }, // Every 2 weeks
+          sound: 'default',
+          extra: { type: 'confession' },
+        });
+      } else if (frequency === 'monthly') {
+        notifications.push({
+          title: '✝️ Recordatorio: Día de Confesión',
+          body: 'Día programado para acudir al sacerdote. Revisa tu resumen de faltas.',
+          id: 4,
+          schedule: { at: scheduledDate, every: 'month' },
+          sound: 'default',
+          extra: { type: 'confession' },
+        });
       }
     }
 
-    // Fallback to standard Window Notification if SW showNotification fails
-    new Notification('🔔 Examen de Conciencia (Prueba)', {
-      body: 'Notificación de prueba enviada desde la aplicación.',
-      icon: '/icon-192.png',
-    });
+    if (notifications.length > 0) {
+      await LocalNotifications.schedule({ notifications });
+      console.log('Local notifications scheduled:', notifications.length);
+    }
+
     return true;
   } catch (e) {
-    console.error('Error triggering test notification:', e);
+    console.error('Error scheduling local notifications:', e);
     return false;
   }
 }
+
+/**
+ * Sends a test notification using native LocalNotifications plugin.
+ */
+export async function sendTestNotification(): Promise<boolean> {
+  try {
+    const perm = await LocalNotifications.requestPermissions();
+    if (perm.display !== 'granted') {
+      throw new Error('Permiso de notificaciones denegado.');
+    }
+
+    await LocalNotifications.schedule({
+      notifications: [{
+        title: '✅ Examen de Conciencia',
+        body: 'Las notificaciones nativas funcionan correctamente.',
+        id: 999,
+        schedule: { at: new Date(Date.now() + 1000) }, // 1 second from now
+        sound: 'default',
+      }]
+    });
+    return true;
+  } catch (e) {
+    console.error('Test notification failed:', e);
+    return false;
+  }
+}
+
+/**
+ * Checks current notification permission status.
+ */
+export async function getNotificationStatus(): Promise<NotificationStatusInfo> {
+  try {
+    const perm = await LocalNotifications.checkPermissions();
+    return {
+      supported: true,
+      permission: perm.display,
+      serviceWorkerActive: 'serviceWorker' in navigator && navigator.serviceWorker.controller !== null,
+      error: undefined,
+    };
+  } catch (e) {
+    return {
+      supported: false,
+      permission: 'unsupported',
+      serviceWorkerActive: false,
+      error: 'LocalNotifications plugin not available',
+    };
+  }
+}
+
+/**
+ * Opens the native date/time picker using Capacitor DateTimePicker plugin.
+ * Returns the selected time in HH:mm format, or null if cancelled.
+ */
+export async function pickTime(currentTime: string = '21:00'): Promise<string | null> {
+  try {
+    const today = new Date();
+    const [hours, minutes] = currentTime.split(':').map(Number);
+    today.setHours(hours, minutes, 0, 0);
+    
+    const result = await DatetimePicker.present({
+      mode: 'time',
+      value: today.toISOString(),
+      format: 'yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\'',
+      cancelButtonText: 'Cancelar',
+      doneButtonText: 'Aceptar',
+    });
+    const selected = new Date(result.value);
+        // Use UTC methods since the picker returns UTC timestamp
+        const hour = selected.getUTCHours();
+        const minute = selected.getUTCMinutes();
+        return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+  } catch (e) {
+    if (e instanceof Error && (e.message.includes('canceled') || e.message.includes('dismissed'))) {
+      return null;
+    }
+    console.warn('Native time picker failed:', e);
+    return null;
+  }
+}
+
+export { DatetimePicker };
+export { LocalNotifications };

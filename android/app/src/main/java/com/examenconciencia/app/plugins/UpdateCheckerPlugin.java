@@ -66,7 +66,12 @@ public class UpdateCheckerPlugin extends Plugin {
                 }
             };
             IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-            getContext().registerReceiver(downloadReceiver, filter);
+            // Android 14+ (API 34+) requiere flag de exportación explícita
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                getContext().registerReceiver(downloadReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+            } else {
+                getContext().registerReceiver(downloadReceiver, filter);
+            }
         }
     }
 

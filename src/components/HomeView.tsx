@@ -44,7 +44,7 @@ interface HomeViewProps {
 
 export const HomeView: React.FC<HomeViewProps> = ({
   session,
-  history,
+  history = [],
   personalization = DEFAULT_PERSONALIZATION,
   profile,
   settings,
@@ -62,15 +62,25 @@ export const HomeView: React.FC<HomeViewProps> = ({
   }, []);
 
   // Currently selected or randomized active prayer
-  const [activePrayer, setActivePrayer] = useState<PrayerItem>(() => {
-    if (settings?.preferredPrayerId) {
-      const saved = prepPrayers.find((p) => p.id === settings.preferredPrayerId);
-      if (saved) return saved;
-    }
-    // Random selection on initial load
-    const randomIndex = Math.floor(Math.random() * prepPrayers.length);
-    return prepPrayers[randomIndex] || prepPrayers[0];
-  });
+    const [activePrayer, setActivePrayer] = useState<PrayerItem>(() => {
+      if (settings?.preferredPrayerId) {
+        const saved = prepPrayers.find((p) => p.id === settings.preferredPrayerId);
+        if (saved) return saved;
+      }
+      // Random selection on initial load
+      if (prepPrayers.length === 0) {
+        // Fallback prayer if none available
+        return {
+          id: 'fallback',
+          title: 'Oración preparatoria',
+          subtitle: 'Invocación al Espíritu Santo',
+          moment: 'antes-examen',
+          text: 'Ven, Espíritu Santo, ilumina mi mente y mi corazón para conocernos y arrepentirnos de nuestros pecados.',
+        } as PrayerItem;
+      }
+      const randomIndex = Math.floor(Math.random() * prepPrayers.length);
+      return prepPrayers[randomIndex] || prepPrayers[0];
+    });
 
   // Sync active prayer if preferredPrayerId changes
   useEffect(() => {
@@ -92,19 +102,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
   };
 
   // Handler to shuffle to a random prayer
-  const handleRandomizePrayer = () => {
-    const remainingPrayers = prepPrayers.filter((p) => p.id !== activePrayer.id);
-    const randomIndex = Math.floor(Math.random() * remainingPrayers.length);
-    const newRandom = remainingPrayers[randomIndex] || prepPrayers[0];
-    setActivePrayer(newRandom);
-    if (onUpdateSettings) {
-      onUpdateSettings({ preferredPrayerId: newRandom.id });
-    }
-  };
+    const handleRandomizePrayer = () => {
+      if (prepPrayers.length === 0) return;
+      const remainingPrayers = prepPrayers.filter((p) => p.id !== activePrayer.id);
+      if (remainingPrayers.length === 0) return;
+      const randomIndex = Math.floor(Math.random() * remainingPrayers.length);
+      const newRandom = remainingPrayers[randomIndex] || prepPrayers[0];
+      setActivePrayer(newRandom);
+      if (onUpdateSettings) {
+        onUpdateSettings({ preferredPrayerId: newRandom.id });
+      }
+    };
 
   // Calculate stats for last confession
-  const lastRecord = history[0];
-  const effectiveLastConfessionDateStr = 
+    const lastRecord = history.length > 0 ? history[0] : undefined;
+    const effectiveLastConfessionDateStr =
     lastRecord?.confessionDate || 
     settings?.lastConfessionDate || 
     personalization?.lastConfessionDate;
