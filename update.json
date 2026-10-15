@@ -1,6 +1,6 @@
 {
-  "versionCode": 22,
-  "versionName": "1.2.9",
-  "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.2.9/Examen_de_Conciencia_v1.2.9.apk",
-  "changelog": "- Configuración limpia: eliminada sección PWA, actualizaciones simplificadas (solo botones Verificar/Forzar)\\n- Oraciones en modal flotante con tamaño de letra ajustable\\n- Fix crash defecto dominante\\n- Splash screen corregido\\n- WebView con file:// support\\n- Vite config sin external (todos @capacitor en bundle)\\n- UI limpia: sin referencias a NAS"
+  "versionCode": 23,
+  "versionName": "1.2.10",
+  "url": "https://github.com/mesaumadridg-art/Examen_conciencia2/releases/download/v1.2.10/Examen_de_Conciencia_v1.2.10.apk",
+  "changelog": "- App carga correctamente: fix props faltantes en HomeView (history, profile, personalization)\n- Botón físico 'volver' de Android funcional: cierra modales, navega a inicio, sale de app\n- Typo fix: sSinceLastConfession → daysSinceLastConfession\n- Valores por defecto defensivos y guardias en arrays\n- versionCode 23 / versionName 1.2.10"
 }
