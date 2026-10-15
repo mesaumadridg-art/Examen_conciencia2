@@ -61,9 +61,10 @@ export default function App() {
   );
 
   // PWA Installation state
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallBanner, setShowInstallBanner] = useState<boolean>(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+    const [showInstallBanner, setShowInstallBanner] = useState<boolean>(false);
+    const canInstallPWA = !!deferredPrompt;
 
   // Auto-update check on start (once per day)
     useEffect(() => {
@@ -408,7 +409,7 @@ export default function App() {
             session={session}
             onUpdateAnswer={handleUpdateAnswer}
             onResetSession={handleResetSession}
-            onGoToSummary={() => setActiveTab('confesion')}
+            onGoToSummary={() => setActiveTab('resumen')}
             profile={activeProfile}
             onChangeProfile={handleChangeProfile}
             personalization={settings.personalization}
@@ -419,16 +420,18 @@ export default function App() {
         )}
 
         {/* Confession Summary View */}
-        {activeTab === 'confesion' && (
-          <ConfessionSummaryView
-            session={session}
-            onUpdateAnswer={handleUpdateAnswer}
-            onResetSession={handleResetSession}
-            onConfirmConfession={handleConfirmConfession}
-            onGoToHistory={() => setActiveTab('historial')}
-            profile={activeProfile}
-          />
-        )}
+                {activeTab === 'resumen' && (
+                  <ConfessionSummaryView
+                    session={session}
+                    settings={settings}
+                    onUpdateSettings={handleUpdateSettings}
+                    onUpdateAnswer={handleUpdateAnswer}
+                    onResetSession={handleResetSession}
+                    onConfirmConfession={handleConfirmConfession}
+                    onBackToExamen={() => setActiveTab('examen')}
+                    profile={activeProfile}
+                  />
+                )}
 
         {/* History & Check-in View */}
         {activeTab === 'historial' && (
@@ -456,15 +459,17 @@ export default function App() {
         )}
 
         {/* Settings Modal */}
-        {isSettingsOpen && (
-          <SettingsView
-            settings={settings}
-            onUpdateSettings={handleUpdateSettings}
-            onClose={() => setIsSettingsOpen(false)}
-            canInstallPWA={canInstallPWA}
-            onInstallPWA={handleInstallPWA}
-          />
-        )}
+                {isSettingsOpen && (
+                  <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md p-2 sm:p-4 flex min-h-full items-end sm:items-center justify-center">
+                    <SettingsView
+                      settings={settings}
+                      onUpdateSettings={handleUpdateSettings}
+                      onClose={() => setIsSettingsOpen(false)}
+                      canInstallPWA={canInstallPWA}
+                      onInstallPWA={handleInstallPWA}
+                    />
+                  </div>
+                )}
 
         {/* Floating Examination Wizard Modal */}
         {isWizardModalOpen && (

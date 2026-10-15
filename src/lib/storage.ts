@@ -5,6 +5,12 @@ const CURRENT_SESSION_KEY = 'examen_confesion_session_v1';
 const HISTORY_KEY = 'examen_confesion_history_v1';
 const ACCUMULATED_STATS_KEY = 'examen_confesion_accumulated_stats_v1';
 
+// Claves legacy (v1.2.9 y anteriores)
+const LEGACY_SESSION_PREFIX = 'examen_conciencia_session_';
+const LEGACY_HISTORY_KEY = 'examen_conciencia_history';
+const LEGACY_SETTINGS_KEY = 'examen_conciencia_settings';
+const LEGACY_STATS_KEY = 'examen_conciencia_accumulated_stats';
+
 export const DEFAULT_SETTINGS: UserSettings = {
   dailyExamReminderEnabled: true,
   dailyExamReminderTime: '21:00',
@@ -23,6 +29,48 @@ export const DEFAULT_SETTINGS: UserSettings = {
   notificationsAllowed: false,
   selectedIconId: 'icon_3',
 };
+// Migración de claves legacy (v1.2.9 y anteriores) -> nuevas claves v1
+function migrateLegacyKeys(): void {
+  try {
+    // Migrar settings
+    const legacySettings = localStorage.getItem(LEGACY_SETTINGS_KEY);
+    if (legacySettings && !localStorage.getItem(SETTINGS_KEY)) {
+      localStorage.setItem(SETTINGS_KEY, legacySettings);
+      console.log('[Storage] Migrated legacy settings');
+    }
+
+    // Migrar history
+    const legacyHistory = localStorage.getItem(LEGACY_HISTORY_KEY);
+    if (legacyHistory && !localStorage.getItem(HISTORY_KEY)) {
+      localStorage.setItem(HISTORY_KEY, legacyHistory);
+      console.log('[Storage] Migrated legacy history');
+    }
+
+    // Migrar sessions por profile
+    const profiles: ProfileMode[] = ['adults', 'youth', 'kids', 'particular'];
+    for (const profile of profiles) {
+      const legacySessionKey = `${LEGACY_SESSION_PREFIX}${profile}`;
+      const legacySession = localStorage.getItem(legacySessionKey);
+      const newSessionKey = `${CURRENT_SESSION_KEY}_${profile}`;
+      if (legacySession && !localStorage.getItem(newSessionKey)) {
+        localStorage.setItem(newSessionKey, legacySession);
+        console.log(`[Storage] Migrated legacy session for ${profile}`);
+      }
+    }
+
+    // Migrar accumulated stats
+    const legacyStats = localStorage.getItem(LEGACY_STATS_KEY);
+    if (legacyStats && !localStorage.getItem(ACCUMULATED_STATS_KEY)) {
+      localStorage.setItem(ACCUMULATED_STATS_KEY, legacyStats);
+      console.log('[Storage] Migrated legacy accumulated stats');
+    }
+  } catch (e) {
+    console.error('[Storage] Legacy migration error:', e);
+  }
+}
+
+// Ejecutar migración al cargar el módulo
+migrateLegacyKeys();
 
 export function getStoredSettings(): UserSettings {
   try {
@@ -50,6 +98,32 @@ export function getStoredSession(profile: ProfileMode): ExaminationSession {
       const parsed: ExaminationSession = JSON.parse(raw);
       if (!parsed.startedAccumulationDate) {
         parsed.startedAccumulationDate = parsed.startDate || new Date().toISOString();
+      }
+      // Si la sesión nueva está vacía (solo answers {}), intentar migrar legacy
+      const hasAnswers = parsed.answers && Object.keys(parsed.answers).length > 0;
+      if (!hasAnswers) {
+        const legacySessionKey = `${LEGACY_SESSION_PREFIX}${profile}`;
+        const legacySession = localStorage.getItem(legacySessionKey);
+        if (legacySession) {
+          try {
+            const legacyParsed: ExaminationSession = JSON.parse(legacySession);
+            const legacyHasAnswers = legacyParsed.answers && Object.keys(legacyParsed.answers).length > 0;
+            if (legacyHasAnswers) {
+              console.log(`[Storage] Merging legacy session data for ${profile}`);
+              // Preservar campos nuevos, usar answers/historial de legacy
+              const merged: ExaminationSession = {
+                ...parsed,
+                ...legacyParsed,
+                id: parsed.id, // mantener ID nuevo
+                startedAccumulationDate: parsed.startedAccumulationDate || legacyParsed.startedAccumulationDate || legacyParsed.startDate,
+              };
+              saveStoredSession(merged);
+              return merged;
+            }
+          } catch (e) {
+            console.error('[Storage] Error parsing legacy session', e);
+          }
+        }
       }
       return parsed;
     }

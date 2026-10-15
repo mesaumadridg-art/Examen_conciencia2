@@ -65,23 +65,34 @@ export const ConfessionSummaryView: React.FC<ConfessionSummaryViewProps> = ({
   );
 
   // Gather all marked items
-  const sinsList: ConfessedSin[] = Object.entries(session.answers)
-    .filter(([_, ans]) => (ans as UserAnswer).status === 'leve' || (ans as UserAnswer).status === 'grave')
-    .map(([qId, ans]) => {
-      const uAns = ans as UserAnswer;
-      const q = getQuestionById(qId);
-      const cat = CATEGORIES.find((c) => c.id === q?.categoryId);
-      const statement = getSinStatement(q, uAns.questionText);
-      return {
-        questionId: qId,
-        questionText: statement,
-        originalQuestion: q?.text || uAns.questionText || '',
-        categoryTitle: cat?.title || uAns.categoryTitle || 'General',
-        status: uAns.status,
-        note: uAns.note,
-        capitalSinCategory: q?.capitalSinCategory,
-      };
-    });
+      const sinsList: ConfessedSin[] = Object.entries(session.answers)
+        .filter(([_, ans]) => (ans as UserAnswer).status === 'leve' || (ans as UserAnswer).status === 'grave')
+        .map(([qId, ans]) => {
+          const uAns = ans as UserAnswer;
+          const q = getQuestionById(qId);
+          const cat = CATEGORIES.find((c) => c.id === q?.categoryId);
+          const statement = getSinStatement(q, uAns.questionText);
+          return {
+            questionId: qId,
+            questionText: statement,
+            originalQuestion: q?.text || uAns.questionText || '',
+            categoryTitle: cat?.title || uAns.categoryTitle || 'General',
+            status: uAns.status,
+            note: uAns.note,
+            capitalSinCategory: q?.capitalSinCategory,
+          };
+        });
+
+      // DEBUG - visible en UI
+          console.log('[ConfessionSummaryView] sinsList.length:', sinsList.length, 'session.answers keys:', Object.keys(session.answers).length);
+    
+          // DEBUG banner visible
+          if (sinsList.length === 0 && Object.keys(session.answers).length > 0) {
+            console.warn('[ConfessionSummaryView] session has answers but sinsList is empty - filter issue');
+          }
+    
+          // DEBUG render marker
+          const _debugRender = <div style={{display: 'none'}} data-debug={`sinsList:${sinsList.length} answers:${Object.keys(session.answers).length}`} />;
 
   // Group by Category
   const groupedSins = sinsList.reduce<Record<string, ConfessedSin[]>>((acc, sin) => {
