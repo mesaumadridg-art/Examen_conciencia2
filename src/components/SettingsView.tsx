@@ -600,14 +600,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {updateInfo.changelog}
               </div>
             )}
-            <button
-              onClick={() => handleDownloadAndInstall(updateInfo.apkUrl)}
-              disabled={downloadingUpdate}
-              className="w-full py-2 px-3 rounded-xl bg-[#C9A227] hover:bg-[#D4B34A] text-black font-semibold text-xs shadow-xs transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>{downloadingUpdate ? 'Descargando...' : 'Descargar e Instalar'}</span>
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={() => handleDownloadAndInstall(updateInfo.apkUrl)}
+                disabled={downloadingUpdate}
+                className="flex-1 py-2 px-3 rounded-xl bg-[#C9A227] hover:bg-[#D4B34A] text-black font-semibold text-xs shadow-xs transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>{downloadingUpdate ? 'Descargando e Instalando...' : 'Descargar e Instalar'}</span>
+              </button>
+              <button
+                onClick={() => window.open(updateInfo.apkUrl, '_blank')}
+                className="flex-1 py-2 px-3 rounded-xl bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-slate-800 dark:text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Descargar en Navegador</span>
+              </button>
+            </div>
             {!updateInfo.force && (
               <button
                 onClick={() => handleSkipVersion(updateInfo.serverVersionCode)}

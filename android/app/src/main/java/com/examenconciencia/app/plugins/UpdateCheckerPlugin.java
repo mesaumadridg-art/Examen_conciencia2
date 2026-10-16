@@ -12,9 +12,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
-import android.webkit.MimeTypeMap;
 
-import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 
 import com.getcapacitor.JSObject;
@@ -38,7 +36,6 @@ public class UpdateCheckerPlugin extends Plugin {
 
     private static final String TAG = "UpdateCheckerPlugin";
     private static final String PREF_NAME = "update_checker_prefs";
-    private static final String KEY_LAST_CHECK = "last_check_time";
     private static final String KEY_SKIPPED_VERSION = "skipped_version_code";
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -66,7 +63,6 @@ public class UpdateCheckerPlugin extends Plugin {
                 }
             };
             IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-            // Android 14+ (API 34+) requiere flag de exportación explícita
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 getContext().registerReceiver(downloadReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
             } else {
@@ -83,7 +79,6 @@ public class UpdateCheckerPlugin extends Plugin {
     public void checkForUpdate(PluginCall call) {
         String updateUrl = call.getString("updateUrl");
         boolean force = call.getBoolean("force", false);
-        boolean silent = call.getBoolean("silent", false);
 
         if (updateUrl == null || updateUrl.isEmpty()) {
             call.reject("updateUrl is required");
@@ -207,17 +202,13 @@ public class UpdateCheckerPlugin extends Plugin {
     }
 
     private void startDownload(String apkUrl) {
-        Activity activity = getActivity();
-        if (activity == null) return;
-
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(apkUrl));
         request.setTitle("Actualizando Examen de Conciencia");
-        request.setDescription("Descargando nueva versión...");
+        request.setDescription("Descargando nueva versión desde GitHub...");
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "ExamenConciencia_update.apk");
         request.setMimeType("application/vnd.android.package-archive");
-        request.allowScanningByMediaScanner();
-        request.setVisibleInDownloadsUi(true);
+        request.addRequestHeader("User-Agent", "Mozilla/5.0 (Android)");
 
         downloadId = downloadManager.enqueue(request);
     }
@@ -229,18 +220,12 @@ public class UpdateCheckerPlugin extends Plugin {
         try (android.database.Cursor cursor = downloadManager.query(query)) {
             if (cursor != null && cursor.moveToFirst()) {
                 int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                int uriIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
 
                 if (statusIndex >= 0 && cursor.getInt(statusIndex) == DownloadManager.STATUS_SUCCESSFUL) {
-                    if (uriIndex >= 0) {
-                        String localUri = cursor.getString(uriIndex);
-                        if (localUri != null) {
-                            installApk(context, Uri.parse(localUri));
-                        }
-                    }
+                    installApk(context);
                 } else {
                     if (pendingInstallCall != null) {
-                        pendingInstallCall.reject("Download failed");
+                        pendingInstallCall.reject("La descarga del APK falló.");
                         pendingInstallCall = null;
                     }
                 }
@@ -248,32 +233,54 @@ public class UpdateCheckerPlugin extends Plugin {
         }
     }
 
-    private void installApk(Context context, Uri apkUri) {
+    private void installApk(Context context) {
         Activity activity = getActivity();
-        if (activity == null) return;
+        Context targetContext = activity != null ? activity : context;
 
-        Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
-        intent.setData(apkUri);
-        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        intent.putExtra(Intent.EXTRA_RETURN_RESULT, true);
-        intent.putExtra(Intent.EXTRA_INSTALLER_PACKAGE_NAME, context.getPackageName());
+        File apkFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "ExamenConciencia_update.apk");
+        if (!apkFile.exists()) {
+            Log.e(TAG, "APK file does not exist at " + apkFile.getAbsolutePath());
+            if (pendingInstallCall != null) {
+                pendingInstallCall.reject("El archivo APK descargado no fue encontrado.");
+                pendingInstallCall = null;
+            }
+            return;
+        }
+
+        Uri contentUri = FileProvider.getUriForFile(targetContext, targetContext.getPackageName() + ".fileprovider", apkFile);
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
+        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            boolean canInstall = context.getPackageManager().canRequestPackageInstalls();
+            boolean canInstall = targetContext.getPackageManager().canRequestPackageInstalls();
             if (!canInstall) {
-                // Request permission to install unknown apps
                 Intent settingsIntent = new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
-                settingsIntent.setData(Uri.parse("package:" + context.getPackageName()));
-                activity.startActivity(settingsIntent);
+                settingsIntent.setData(Uri.parse("package:" + targetContext.getPackageName()));
+                settingsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                targetContext.startActivity(settingsIntent);
                 if (pendingInstallCall != null) {
-                    pendingInstallCall.reject("Unknown sources permission required");
+                    pendingInstallCall.reject("Debes conceder el permiso para instalar aplicaciones desconocidas en los ajustes de Android e intentar de nuevo.");
                     pendingInstallCall = null;
                 }
                 return;
             }
         }
 
-        activity.startActivityForResult(intent, 12345);
+        try {
+            targetContext.startActivity(intent);
+            if (pendingInstallCall != null) {
+                pendingInstallCall.resolve(new JSObject().put("installed", true));
+                pendingInstallCall = null;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error launching package installer", e);
+            if (pendingInstallCall != null) {
+                pendingInstallCall.reject("Error al iniciar el instalador de paquetes: " + e.getMessage());
+                pendingInstallCall = null;
+            }
+        }
     }
 
     @Override
@@ -289,12 +296,12 @@ public class UpdateCheckerPlugin extends Plugin {
         executor.shutdown();
     }
 
-    public void handleActivityResult(int requestCode, int resultCode, android.content.Intent data) {
+    public void handleActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 12345 && pendingInstallCall != null) {
             if (resultCode == Activity.RESULT_OK) {
                 pendingInstallCall.resolve(new JSObject().put("installed", true));
             } else {
-                pendingInstallCall.reject("Install cancelled or failed");
+                pendingInstallCall.reject("Instalación cancelada o rechazada.");
             }
             pendingInstallCall = null;
         }

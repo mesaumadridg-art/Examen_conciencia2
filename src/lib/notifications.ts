@@ -281,7 +281,7 @@ export async function scheduleAllReminders(settings: UserSettings): Promise<bool
         title: '🕯️ Examen de Conciencia Nocturno',
         body: 'Tómate 2 minutos de calma para revisar las faltas del día.',
         id: 1,
-        schedule: { at: scheduledDate, repeats: true },
+        schedule: { at: scheduledDate, repeats: true, every: 'day' },
         sound: 'default',
         attachments: undefined,
         actionTypeId: 'OPEN_APP',

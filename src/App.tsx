@@ -33,7 +33,7 @@ import {
   DAYS_OF_WEEK,
   updateAccumulatedStats
 } from './lib/storage';
-import { syncRemindersWithServiceWorker } from './lib/notifications';
+import { syncRemindersWithServiceWorker, scheduleAllReminders } from './lib/notifications';
 import { updateService } from './services/updateService';
 import { ALL_QUESTIONS, CATEGORIES, getQuestionById } from './data/questionsData';
 import { Bell, Sparkles, X, Cross, Smartphone, HelpCircle } from 'lucide-react';
@@ -171,10 +171,11 @@ export default function App() {
     }
   }, [settings.theme]);
 
-  // Sync Reminders with Service Worker
+  // Sync Reminders with Native LocalNotifications & Service Worker
     useEffect(() => {
       const syncReminders = async () => {
         try {
+          await scheduleAllReminders(settings);
           await syncRemindersWithServiceWorker(settings);
         } catch (e) {
           console.warn('[Reminders] Sync falló:', e);
