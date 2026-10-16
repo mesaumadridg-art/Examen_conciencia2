@@ -118,10 +118,10 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
             </div>
 
             <div className="flex items-center gap-1.5 text-xs font-semibold text-[#C9A227] shrink-0 pl-2">
-              <span className="text-[11px] hidden xs:inline">Cambiar</span>
-              <CalendarDays className="w-4 h-4" />
-            </div>
-          </div>
+                          <span className="text-[11px] hidden xs:inline">Cambiar</span>
+                          <CalendarDays className="w-4 h-4 text-[#C9A227]" />
+                        </div>
+                      </div>
 
           {/* REAL NATIVE INPUT: Stretched over the entire card with opacity-0 so any click/tap on the card opens the native Android/iOS date wheel/dialog directly! */}
           <input

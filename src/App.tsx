@@ -416,6 +416,7 @@ export default function App() {
             onSavePersonalization={handleUpdateSettings}
             onOpenWizardModal={() => setIsWizardModalOpen(true)}
             onOpenHelpModal={() => setIsHelpModalOpen(true)}
+                    settings={settings}
           />
         )}
 
@@ -484,6 +485,7 @@ export default function App() {
             personalization={settings.personalization}
             onSavePersonalization={handleUpdateSettings}
             onOpenHelpModal={() => setIsHelpModalOpen(true)}
+                    settings={settings}
           />
         )}
 

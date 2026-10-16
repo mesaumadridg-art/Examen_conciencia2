@@ -217,14 +217,14 @@ export const StatsView: React.FC<StatsViewProps> = ({
       </div>
 
       {/* Dominant Defect Focus Card */}
-      <div className="bg-[#141415] border border-[#C9A227]/30 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xl relative">
-        <span className="absolute -top-2.5 left-6 px-3 py-0.5 bg-[#C9A227] text-black text-[9px] font-bold uppercase tracking-widest rounded-full shadow-[0_0_10px_rgba(201,162,39,0.3)]">
+      <div className="bg-white dark:bg-[#141415] border border-slate-200 dark:border-[#C9A227]/30 rounded-2xl p-5 sm:p-6 space-y-4 shadow-md relative">
+        <span className="absolute -top-2.5 left-6 px-3 py-0.5 bg-[#C9A227] text-black text-[9px] font-bold uppercase tracking-widest rounded-full shadow-xs">
           Combate Espiritual Principal
         </span>
 
         <div className="flex items-center gap-2.5 text-[#C9A227] pt-1">
           <Target className="w-5 h-5 text-[#C9A227]" />
-          <h3 className="text-lg font-serif italic text-white">
+          <h3 className="text-lg font-serif italic text-slate-900 dark:text-white">
             Defecto Dominante Identificado: <span className="text-[#C9A227] not-italic font-semibold">{dominantDefectFound?.capital || 'Ninguno (aún)'}</span>
           </h3>
         </div>

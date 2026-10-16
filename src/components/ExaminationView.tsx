@@ -326,26 +326,26 @@ export const ExaminationView: React.FC<ExaminationViewProps> = ({
                   </div>
 
                   {/* Dominant Defect Banner (Real-time during examination) */}
-                  <div className="bg-[#141415] border border-[#C9A227]/30 rounded-2xl p-4 shadow-lg relative">
-                    <span className="absolute -top-2.5 left-6 px-3 py-0.5 bg-[#C9A227] text-black text-[9px] font-bold uppercase tracking-widest rounded-full shadow-[0_0_10px_rgba(201,162,39,0.3)]">
+                  <div className="bg-white dark:bg-[#141415] border border-slate-200 dark:border-[#C9A227]/30 rounded-2xl p-4 shadow-md relative overflow-hidden">
+                    <span className="absolute -top-2.5 left-6 px-3 py-0.5 bg-[#C9A227] text-black text-[9px] font-bold uppercase tracking-widest rounded-full shadow-xs">
                       Defecto Dominante Actual
                     </span>
 
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <Target className="w-5 h-5 text-[#C9A227]" />
-                        <div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 pt-1 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Target className="w-5 h-5 text-[#C9A227] shrink-0" />
+                        <div className="min-w-0">
                           <p className="text-xs font-semibold text-[#C9A227] uppercase tracking-wider">
                             Tu talón de Aquiles en este examen:
                           </p>
-                          <p className="text-lg font-serif italic text-white">
-                                                      <span className="text-[#C9A227] not-italic font-semibold">{dominantDefect?.capital || 'Sin faltas marcadas aún'}</span>
-                                                    </p>
+                          <p className="text-base sm:text-lg font-serif italic text-slate-900 dark:text-white truncate">
+                            <span className="text-[#C9A227] not-italic font-semibold">{dominantDefect?.capital || 'Sin faltas marcadas aún'}</span>
+                          </p>
                         </div>
                       </div>
 
-                      <div className="bg-white/80 dark:bg-black/30 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/5 shrink-0">
-                        <p className="text-xs font-serif text-slate-700 dark:text-white/80 leading-snug italic">
+                      <div className="bg-slate-50 dark:bg-black/40 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 w-full sm:w-auto sm:max-w-md break-words">
+                        <p className="text-xs font-serif text-slate-700 dark:text-white/80 leading-relaxed italic">
                           «{virtInfo.advice}»
                         </p>
                       </div>

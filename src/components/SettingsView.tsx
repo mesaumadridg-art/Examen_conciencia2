@@ -32,6 +32,18 @@ interface SettingsViewProps {
 // Hardcoded update URL
 const UPDATE_JSON_URL = 'https://raw.githubusercontent.com/mesaumadridg-art/Examen_conciencia2/main/update.json';
 
+function format12HourTime(time24?: string): string {
+  if (!time24) return '--:--';
+  const [hStr, mStr] = time24.split(':');
+  let h = parseInt(hStr, 10);
+  if (isNaN(h)) return time24;
+  const m = mStr || '00';
+  const period = h >= 12 ? 'PM' : 'AM';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${String(h).padStart(2, '0')}:${m} ${period}`;
+}
+
 export const SettingsView: React.FC<SettingsViewProps> = ({
   settings,
   onUpdateSettings,
@@ -41,6 +53,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 }) => {
   const [notificationTestStatus, setNotificationTestStatus] = useState<string | null>(null);
   const [appVersion, setAppVersion] = useState<string>('');
+
+  const handleRequestPermission = async () => {
+    try {
+      const perm = await reqPermission();
+      if (perm === 'granted') {
+        onUpdateSettings({ notificationsAllowed: true });
+        setNotificationTestStatus('Permiso concedido exitosamente.');
+      } else {
+        onUpdateSettings({ notificationsAllowed: false });
+        setNotificationTestStatus('Permiso denegado por el sistema.');
+      }
+    } catch (e: any) {
+      setNotificationTestStatus(`Error: ${e?.message || 'No se pudo obtener permiso'}`);
+    }
+  };
+
+  const handleTestNotification = async () => {
+    try {
+      await sendTestNotification();
+      setNotificationTestStatus('Notificación de prueba enviada.');
+    } catch (e: any) {
+      setNotificationTestStatus(`Error: ${e?.message || 'Fallo al enviar prueba'}`);
+    }
+  };
 
   // Get app version from Capacitor (dynamic import to avoid web build issues)
   useEffect(() => {
@@ -169,12 +205,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 space-y-1.5">
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-white/70">Hora</label>
-              <div className="relative">
+              <div className="relative group">
+                <div
+                  onClick={(e) => {
+                    const input = e.currentTarget.parentElement?.querySelector('input[type="time"]') as HTMLInputElement;
+                    try { input?.showPicker(); } catch { input?.focus(); }
+                  }}
+                  className="w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl border bg-white dark:bg-black/50 border-slate-200 dark:border-white/10 group-hover:border-[#C9A227] dark:group-hover:border-[#C9A227] transition-all shadow-xs cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="p-1.5 rounded-lg bg-[#C9A227]/15 text-[#C9A227] group-hover:bg-[#C9A227] group-hover:text-black transition-colors shrink-0">
+                      <Clock className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-mono text-slate-900 dark:text-white text-base font-bold">
+                        {format12HourTime(settings.dailyExamReminderTime)}
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#C9A227]">Cambiar</span>
+                </div>
                 <input
                   type="time"
                   value={settings.dailyExamReminderTime}
                   onChange={(e) => onUpdateSettings({ dailyExamReminderTime: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border bg-white dark:bg-black/40 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-[#C9A227] text-base"
+                  onClick={(e) => {
+                    try { e.currentTarget.showPicker(); } catch {}
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  style={{ colorScheme: 'light dark', accentColor: '#C9A227' }}
+                  title="Toca para seleccionar hora"
                 />
               </div>
             </div>
@@ -211,12 +271,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
             <div className="space-y-1.5">
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-white/70">Hora</label>
-              <div className="relative">
+              <div className="relative group">
+                <div
+                  onClick={(e) => {
+                    const input = e.currentTarget.parentElement?.querySelector('input[type="time"]') as HTMLInputElement;
+                    try { input?.showPicker(); } catch { input?.focus(); }
+                  }}
+                  className="w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl border bg-white dark:bg-black/50 border-slate-200 dark:border-white/10 group-hover:border-[#C9A227] dark:group-hover:border-[#C9A227] transition-all shadow-xs cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="p-1.5 rounded-lg bg-[#C9A227]/15 text-[#C9A227] group-hover:bg-[#C9A227] group-hover:text-black transition-colors shrink-0">
+                      <Clock className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-mono text-slate-900 dark:text-white text-base font-bold">
+                        {format12HourTime(settings.confessionReminderTime)}
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#C9A227]">Cambiar</span>
+                </div>
                 <input
                   type="time"
                   value={settings.confessionReminderTime}
                   onChange={(e) => onUpdateSettings({ confessionReminderTime: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border bg-white dark:bg-black/40 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-[#C9A227] text-base"
+                  onClick={(e) => {
+                    try { e.currentTarget.showPicker(); } catch {}
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  style={{ colorScheme: 'light dark', accentColor: '#C9A227' }}
+                  title="Toca para seleccionar hora"
                 />
               </div>
             </div>
@@ -247,6 +331,49 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             onDateChange={(dates) => onUpdateSettings({ keyConfessionDates: dates })}
             maxDates={3}
           />
+        </div>
+
+        {/* D. PERMISO DE NOTIFICACIONES */}
+        <div className="bg-slate-50 dark:bg-black/30 p-4 rounded-2xl border border-slate-200 dark:border-white/10 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[#C9A227] font-semibold text-xs sm:text-sm">
+              <Bell className="w-4 h-4 text-[#C9A227]" />
+              <span className="uppercase tracking-wider font-bold">Permiso de Notificaciones del Sistema</span>
+            </div>
+            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+              settings.notificationsAllowed
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+            }`}>
+              {settings.notificationsAllowed ? 'Activas' : 'Pendientes'}
+            </span>
+          </div>
+          <p className="text-xs text-slate-600 dark:text-white/60 leading-relaxed">
+            Permite que la app te envíe recordatorios diarios para tu examen de conciencia y avisos para tus confesiones programadas.
+          </p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <button
+              type="button"
+              onClick={handleRequestPermission}
+              className="px-3.5 py-2 rounded-xl bg-[#C9A227] hover:bg-[#D4B34A] text-black font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <Bell className="w-3.5 h-3.5" />
+              <span>Solicitar Permisos de Notificaciones</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleTestNotification}
+              className="px-3.5 py-2 rounded-xl bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-slate-800 dark:text-white font-semibold text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Enviar Notificación de Prueba</span>
+            </button>
+          </div>
+          {notificationTestStatus && (
+            <p className="text-[11px] font-medium text-[#C9A227] italic pt-1">
+              {notificationTestStatus}
+            </p>
+          )}
         </div>
       </div>
 

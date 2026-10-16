@@ -138,21 +138,21 @@ export const ConfessionSummaryView: React.FC<ConfessionSummaryViewProps> = ({
   return (
     <div className="space-y-6 pb-20 max-w-4xl mx-auto">
       {/* Header Banner */}
-      <div className="bg-slate-900 text-slate-100 dark:bg-[#141415] dark:border-white/10 p-5 sm:p-6 rounded-2xl border shadow-md relative print:bg-white print:text-black print:border-none print:shadow-none">
+      <div className="bg-white dark:bg-[#141415] border border-slate-200 dark:border-white/10 p-5 sm:p-6 rounded-2xl shadow-sm relative print:bg-white print:text-black print:border-none print:shadow-none">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#C9A227]">
                 Guía de Confesión
               </span>
-              <span className="text-[10px] font-bold text-amber-300 bg-amber-500/20 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
+              <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
                 Acumulado en {daysAccumulated} {daysAccumulated === 1 ? 'día' : 'días'} (Desde el {formattedAccumulationDate})
               </span>
             </div>
-            <h2 className="text-2xl font-serif italic mt-1 text-white">
+            <h2 className="text-2xl font-serif italic mt-1 text-slate-900 dark:text-white">
               Lista de Pecados a Confesar
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 dark:text-white/50 print:text-slate-600 mt-1">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-white/50 print:text-slate-600 mt-1">
               Pecados redactados como acusaciones claras y directas para declarar serenamente ante el sacerdote.
             </p>
           </div>
