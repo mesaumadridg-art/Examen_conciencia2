@@ -326,8 +326,8 @@ export const ExaminationView: React.FC<ExaminationViewProps> = ({
                   </div>
 
                   {/* Dominant Defect Banner (Real-time during examination) */}
-                  <div className="bg-white dark:bg-[#141415] border border-slate-200 dark:border-[#C9A227]/30 rounded-2xl p-4 shadow-md relative overflow-hidden">
-                    <span className="absolute -top-2.5 left-6 px-3 py-0.5 bg-[#C9A227] text-black text-[9px] font-bold uppercase tracking-widest rounded-full shadow-xs">
+                  <div className="bg-white dark:bg-[#141415] border border-slate-200 dark:border-[#C9A227]/30 rounded-2xl p-4 shadow-md relative mt-3 overflow-visible">
+                    <span className="absolute -top-2.5 left-6 px-3 py-0.5 bg-[#C9A227] text-black text-[9px] font-bold uppercase tracking-widest rounded-full shadow-xs z-10">
                       Defecto Dominante Actual
                     </span>
 

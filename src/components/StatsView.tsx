@@ -217,8 +217,8 @@ export const StatsView: React.FC<StatsViewProps> = ({
       </div>
 
       {/* Dominant Defect Focus Card */}
-      <div className="bg-white dark:bg-[#141415] border border-slate-200 dark:border-[#C9A227]/30 rounded-2xl p-5 sm:p-6 space-y-4 shadow-md relative">
-        <span className="absolute -top-2.5 left-6 px-3 py-0.5 bg-[#C9A227] text-black text-[9px] font-bold uppercase tracking-widest rounded-full shadow-xs">
+      <div className="bg-white dark:bg-[#141415] border border-slate-200 dark:border-[#C9A227]/30 rounded-2xl p-5 sm:p-6 space-y-4 shadow-md relative mt-3 overflow-visible">
+        <span className="absolute -top-2.5 left-6 px-3 py-0.5 bg-[#C9A227] text-black text-[9px] font-bold uppercase tracking-widest rounded-full shadow-xs z-10">
           Combate Espiritual Principal
         </span>
 

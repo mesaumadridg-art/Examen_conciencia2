@@ -163,8 +163,8 @@ export const ConfessionSummaryView: React.FC<ConfessionSummaryViewProps> = ({
               onClick={togglePrivacy}
               className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
                 isPrivacyActive
-                  ? 'bg-[#C9A227] text-black font-bold'
-                  : 'bg-slate-800 dark:bg-black/40 hover:bg-slate-700 dark:hover:bg-white/5 text-slate-200 dark:text-white/70 border border-slate-700 dark:border-white/10'
+                  ? 'bg-[#C9A227] text-black font-bold shadow-xs'
+                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-black/40 dark:hover:bg-white/5 text-slate-800 dark:text-white/70 border border-slate-200 dark:border-white/10'
               }`}
               title="Modo Privado (Ocultar texto hasta tocar)"
             >
@@ -174,18 +174,18 @@ export const ConfessionSummaryView: React.FC<ConfessionSummaryViewProps> = ({
 
             <button
               onClick={handleCopyText}
-              className="p-2.5 rounded-xl bg-slate-800 dark:bg-black/40 hover:bg-slate-700 dark:hover:bg-white/5 text-slate-200 dark:text-white/70 border border-slate-700 dark:border-white/10 transition-colors"
+              className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-black/40 dark:hover:bg-white/5 text-slate-800 dark:text-white/70 border border-slate-200 dark:border-white/10 transition-colors cursor-pointer"
               title="Copiar lista de pecados"
             >
-              {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+              {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-[#C9A227]" />}
             </button>
 
             <button
               onClick={handlePrint}
-              className="p-2.5 rounded-xl bg-slate-800 dark:bg-black/40 hover:bg-slate-700 dark:hover:bg-white/5 text-slate-200 dark:text-white/70 border border-slate-700 dark:border-white/10 transition-colors"
+              className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-black/40 dark:hover:bg-white/5 text-slate-800 dark:text-white/70 border border-slate-200 dark:border-white/10 transition-colors cursor-pointer"
               title="Imprimir o guardar PDF"
             >
-              <Printer className="w-4 h-4" />
+              <Printer className="w-4 h-4 text-[#C9A227]" />
             </button>
 
             {onResetSession && (
@@ -195,7 +195,7 @@ export const ConfessionSummaryView: React.FC<ConfessionSummaryViewProps> = ({
                     onResetSession();
                   }
                 }}
-                className="px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                className="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                 title="Borrar todas las respuestas de este examen"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -206,28 +206,28 @@ export const ConfessionSummaryView: React.FC<ConfessionSummaryViewProps> = ({
         </div>
 
         {/* Display Format Mode Toggle */}
-        <div className="mt-4 pt-3 border-t border-slate-800 dark:border-white/10 flex items-center justify-between gap-3 text-xs flex-wrap print:hidden">
-          <span className="text-slate-400 dark:text-white/40 flex items-center gap-1.5">
+        <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/10 flex items-center justify-between gap-3 text-xs flex-wrap print:hidden">
+          <span className="text-slate-600 dark:text-white/60 flex items-center gap-1.5 font-medium">
             <ListFilter className="w-3.5 h-3.5 text-[#C9A227]" />
             Modo de presentación:
           </span>
-          <div className="flex items-center gap-1 bg-slate-950/60 dark:bg-black/60 p-1 rounded-xl border border-slate-800 dark:border-white/10">
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-black/60 p-1 rounded-xl border border-slate-200 dark:border-white/10">
             <button
               onClick={() => setDisplayFormat('statement')}
-              className={`px-3 py-1 rounded-lg font-medium transition-all ${
+              className={`px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
                 displayFormat === 'statement'
                   ? 'bg-[#C9A227] text-black font-bold shadow-xs'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Pecados / Acusaciones
             </button>
             <button
               onClick={() => setDisplayFormat('question')}
-              className={`px-3 py-1 rounded-lg font-medium transition-all ${
+              className={`px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
                 displayFormat === 'question'
                   ? 'bg-[#C9A227] text-black font-bold shadow-xs'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Preguntas Completas
@@ -408,24 +408,24 @@ export const ConfessionSummaryView: React.FC<ConfessionSummaryViewProps> = ({
 
           {/* Acto de Contrición Card */}
           {actoContricion && (
-            <div className="bg-[#141415] border border-[#C9A227]/30 rounded-2xl p-5 shadow-lg relative">
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-4 py-0.5 bg-[#C9A227] text-black text-[9px] font-bold uppercase tracking-widest rounded-full shadow-[0_0_10px_rgba(201,162,39,0.3)]">
+            <div className="bg-white dark:bg-[#141415] border border-slate-200 dark:border-[#C9A227]/30 rounded-2xl p-5 shadow-sm relative mt-3 overflow-visible">
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-4 py-0.5 bg-[#C9A227] text-black text-[9px] font-bold uppercase tracking-widest rounded-full shadow-xs z-10">
                 Oración del Penitente
               </span>
 
               <button
                 onClick={() => setShowPrayer(!showPrayer)}
-                className="w-full flex items-center justify-between text-left font-serif italic text-[#C9A227] text-base mt-1"
+                className="w-full flex items-center justify-between text-left font-serif italic text-[#C9A227] text-base mt-1 cursor-pointer"
               >
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-[#C9A227]" />
-                  <span>{actoContricion.title}</span>
+                  <span className="font-bold">{actoContricion.title}</span>
                 </div>
                 {showPrayer ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
 
               {showPrayer && (
-                <div className="mt-3 pt-3 border-t border-white/5 text-xs sm:text-sm text-white/80 whitespace-pre-line leading-relaxed font-serif italic">
+                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-white/5 text-xs sm:text-sm text-slate-800 dark:text-white/80 whitespace-pre-line leading-relaxed font-serif italic">
                   {actoContricion.text}
                 </div>
               )}
