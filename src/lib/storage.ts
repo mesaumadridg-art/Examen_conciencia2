@@ -24,6 +24,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   reminderFrequency: 'daily',
   reminderEnabled: true,
   theme: 'dark',
+  fontSize: 'normal',
   activeProfile: 'adults',
   privacyMode: false,
   notificationsAllowed: false,

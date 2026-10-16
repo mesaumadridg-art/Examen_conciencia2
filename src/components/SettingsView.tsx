@@ -534,6 +534,43 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </div>
 
+      {/* 3.1. Tamaños de Letra / Texto */}
+      <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-[#C9A227] font-semibold text-sm">
+            <Sparkles className="w-4 h-4 text-[#C9A227]" />
+            <span className="text-xs font-semibold uppercase tracking-wider">Tamaño de Letra / Texto</span>
+          </div>
+          <span className="text-[11px] font-bold text-[#C9A227] bg-[#C9A227]/10 px-2.5 py-0.5 rounded-full border border-[#C9A227]/30">
+            {settings.fontSize === 'small' ? 'Pequeña (14px)' : settings.fontSize === 'large' ? 'Grande (18px)' : settings.fontSize === 'xlarge' ? 'Muy Grande (20px)' : 'Normal (16px)'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {(['small', 'normal', 'large', 'xlarge'] as const).map((size) => {
+            const labels = { small: 'Pequeña', normal: 'Normal', large: 'Grande', xlarge: 'Muy Grande' };
+            const isSelected = (settings.fontSize || 'normal') === size;
+            return (
+              <button
+                key={size}
+                type="button"
+                onClick={() => onUpdateSettings({ fontSize: size })}
+                className={`py-2 px-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-[#C9A227] text-black font-bold border-[#C9A227] shadow-xs'
+                    : 'bg-slate-50 dark:bg-black/40 border-slate-200 dark:border-white/10 text-slate-700 dark:text-white/70 hover:bg-[#C9A227]/20 hover:border-[#C9A227]/30'
+                }`}
+              >
+                {labels[size]}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[11px] text-slate-500 dark:text-white/50 leading-relaxed italic">
+          Muestra de texto: «Señor, ten piedad de mí y purifica mi corazón».
+        </p>
+      </div>
+
       {/* 4. Privacy & Discretion */}
       <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-2">
         <div className="flex items-center justify-between">

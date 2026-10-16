@@ -114,6 +114,7 @@ export interface UserSettings {
   reminderEnabled: boolean;
 
   theme: 'dark' | 'light' | 'system';
+  fontSize?: 'small' | 'normal' | 'large' | 'xlarge';
   activeProfile: ProfileMode;
   personalization?: UserPersonalization;
   dominantDefect?: string;

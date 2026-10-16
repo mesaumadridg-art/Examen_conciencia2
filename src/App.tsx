@@ -171,6 +171,14 @@ export default function App() {
     }
   }, [settings.theme]);
 
+  // Apply Font Size scaling
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('font-size-small', 'font-size-normal', 'font-size-large', 'font-size-xlarge');
+    const size = settings.fontSize || 'normal';
+    root.classList.add(`font-size-${size}`);
+  }, [settings.fontSize]);
+
   // Sync Reminders with Native LocalNotifications & Service Worker
     useEffect(() => {
       const syncReminders = async () => {
@@ -478,6 +486,10 @@ export default function App() {
           <FloatingExaminationWizardModal
             isOpen={isWizardModalOpen}
             onClose={() => setIsWizardModalOpen(false)}
+            onGoToSummary={() => {
+              setIsWizardModalOpen(false);
+              setActiveTab('resumen');
+            }}
             session={session}
             onUpdateAnswer={handleUpdateAnswer}
             onResetSession={handleResetSession}
@@ -486,7 +498,7 @@ export default function App() {
             personalization={settings.personalization}
             onSavePersonalization={handleUpdateSettings}
             onOpenHelpModal={() => setIsHelpModalOpen(true)}
-                    settings={settings}
+            settings={settings}
           />
         )}
 
