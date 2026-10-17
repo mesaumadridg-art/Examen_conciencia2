@@ -65,23 +65,24 @@ export const ConfessionSummaryView: React.FC<ConfessionSummaryViewProps> = ({
   );
 
   // Gather all marked items
-      const sinsList: ConfessedSin[] = Object.entries(session.answers)
-        .filter(([_, ans]) => (ans as UserAnswer).status === 'leve' || (ans as UserAnswer).status === 'grave')
-        .map(([qId, ans]) => {
-          const uAns = ans as UserAnswer;
-          const q = getQuestionById(qId);
-          const cat = CATEGORIES.find((c) => c.id === q?.categoryId);
-          const statement = getSinStatement(q, uAns.questionText);
-          return {
-            questionId: qId,
-            questionText: statement,
-            originalQuestion: q?.text || uAns.questionText || '',
-            categoryTitle: cat?.title || uAns.categoryTitle || 'General',
-            status: uAns.status,
-            note: uAns.note,
-            capitalSinCategory: q?.capitalSinCategory,
-          };
-        });
+  const sinsList: (ConfessedSin & { count?: number })[] = Object.entries(session.answers)
+    .filter(([_, ans]) => (ans as UserAnswer).status === 'leve' || (ans as UserAnswer).status === 'grave')
+    .map(([qId, ans]) => {
+      const uAns = ans as UserAnswer;
+      const q = getQuestionById(qId);
+      const cat = CATEGORIES.find((c) => c.id === q?.categoryId);
+      const statement = getSinStatement(q, uAns.questionText);
+      return {
+        questionId: qId,
+        questionText: statement,
+        originalQuestion: q?.text || uAns.questionText || '',
+        categoryTitle: cat?.title || uAns.categoryTitle || 'General',
+        status: uAns.status,
+        note: uAns.note,
+        count: uAns.count || 1,
+        capitalSinCategory: q?.capitalSinCategory,
+      };
+    });
 
       // DEBUG - visible en UI
           console.log('[ConfessionSummaryView] sinsList.length:', sinsList.length, 'session.answers keys:', Object.keys(session.answers).length);
@@ -302,6 +303,12 @@ export const ConfessionSummaryView: React.FC<ConfessionSummaryViewProps> = ({
                               Leve
                             </span>
                           )}
+
+                          {item.count && item.count > 1 ? (
+                            <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30">
+                              Acumulada {item.count} veces
+                            </span>
+                          ) : null}
 
                           {item.capitalSinCategory && (
                             <span className="px-2 py-0.5 rounded text-[9px] font-medium uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30">

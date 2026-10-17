@@ -219,12 +219,26 @@ export default function App() {
     const cat = CATEGORIES.find((c) => c.id === q?.categoryId);
     const todayStr = new Date().toISOString().split('T')[0];
 
+    const existingAnswer = session.answers[questionId] as UserAnswer | undefined;
+    let newCount = existingAnswer?.count || 1;
+
+    if (status === 'leve' || status === 'grave') {
+      if (existingAnswer && (existingAnswer.status === 'leve' || existingAnswer.status === 'grave') && existingAnswer.status === status) {
+        newCount = (existingAnswer.count || 1) + 1;
+      } else {
+        newCount = 1;
+      }
+    } else {
+      newCount = 0;
+    }
+
     const updatedAnswers = {
       ...session.answers,
       [questionId]: {
         questionId,
         status,
-        note,
+        note: note !== undefined ? note : existingAnswer?.note,
+        count: newCount,
         timestamp: Date.now(),
         questionText: questionText || q?.text,
         categoryTitle: categoryTitle || cat?.title,

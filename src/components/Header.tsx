@@ -83,10 +83,10 @@ export const Header: React.FC<HeaderProps> = ({
                   ? 'bg-[#C9A227] text-black border-[#C9A227] font-bold shadow-xs'
                   : 'bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-800 dark:text-white border-slate-200 dark:border-white/10'
               }`}
-              title={isQuickBarOpen ? 'Ocultar ajustes rápidos' : 'Ajustes rápidos de texto, tema y ayuda'}
+              title={isQuickBarOpen ? 'Ocultar ajustes rápidos' : 'Ajustes rápidos de letra, tema, configuración y ayuda'}
             >
-              <Type className="w-4 h-4 text-[#C9A227]" />
-              <span className="text-[11px] hidden xs:inline">Letra & Opciones</span>
+              <Settings className="w-4 h-4 text-[#C9A227] group-hover:rotate-45 transition-transform" />
+              <span className="text-[11px] hidden xs:inline">Ajustes Rápidos</span>
               {isQuickBarOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
           </div>
@@ -137,10 +137,10 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={openSettingsModal}
                 className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:border-[#C9A227] transition-all flex items-center gap-1 text-[11px] font-medium cursor-pointer"
-                title="Configuración Completa"
+                title="Configuración Completa de la App"
               >
                 <Settings className="w-3.5 h-3.5 text-[#C9A227]" />
-                <span className="hidden sm:inline">Ajustes</span>
+                <span>Ajustes Completos</span>
               </button>
 
               <button
