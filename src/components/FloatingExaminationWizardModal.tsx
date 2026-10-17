@@ -32,6 +32,7 @@ interface FloatingExaminationWizardModalProps {
   session: ExaminationSession;
   onUpdateAnswer: (questionId: string, status: AnswerStatus, note?: string) => void;
   onGoToSummary: () => void;
+  onResetSession?: () => void;
   personalization?: UserPersonalization;
   onOpenHelpModal?: () => void;
 }
@@ -55,6 +56,7 @@ export const FloatingExaminationWizardModal: React.FC<FloatingExaminationWizardM
   session,
   onUpdateAnswer,
   onGoToSummary,
+  onResetSession,
   personalization = DEFAULT_PERSONALIZATION,
   onOpenHelpModal,
 }) => {
@@ -144,14 +146,31 @@ export const FloatingExaminationWizardModal: React.FC<FloatingExaminationWizardM
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors shrink-0"
-            title="Cerrar examen"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onResetSession && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm('¿Deseas borrar todas las marcas del examen actual para iniciar una revisión completamente limpia desde cero?')) {
+                    onResetSession();
+                  }
+                }}
+                className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 transition-colors flex items-center gap-1 cursor-pointer"
+                title="Borrar todas las respuestas del examen actual para empezar limpio"
+              >
+                <span>Reiniciar Examen</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors shrink-0 cursor-pointer"
+              title="Cerrar examen"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Category / Area Banner */}

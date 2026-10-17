@@ -420,6 +420,7 @@ export default function App() {
                     onUpdateSettings={handleUpdateSettings}
                     onOpenSettings={() => setIsSettingsOpen(true)}
                     onOpenWizardModal={() => setIsWizardModalOpen(true)}
+                    onResetSession={handleResetSession}
                     onGoToTab={(tab) => setActiveTab(tab)}
                     onOpenPersonalization={() => setIsPersonalizationOpen(true)}
                     onOpenHelpModal={() => setIsHelpModalOpen(true)}

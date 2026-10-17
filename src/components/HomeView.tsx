@@ -37,6 +37,7 @@ interface HomeViewProps {
   settings?: UserSettings;
   onUpdateSettings?: (newSettings: Partial<UserSettings>) => void;
   onOpenWizardModal: () => void;
+  onResetSession?: () => void;
   onGoToTab: (tab: string) => void;
   onOpenPersonalization: () => void;
   onOpenHelpModal?: () => void;
@@ -50,6 +51,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   settings,
   onUpdateSettings,
   onOpenWizardModal,
+  onResetSession,
   onGoToTab,
   onOpenPersonalization,
   onOpenHelpModal,
@@ -238,15 +240,32 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
 
         {/* DIRECT START EXAMEN BUTTON */}
-        <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 relative z-10">
+        <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 relative z-10">
           <button
             onClick={onOpenWizardModal}
-            className="w-full px-8 py-4 rounded-2xl bg-[#C9A227] hover:bg-[#D4B34A] text-black font-bold text-base shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-3 hover:scale-[1.01] group cursor-pointer"
+            className="flex-1 px-6 py-4 rounded-2xl bg-[#C9A227] hover:bg-[#D4B34A] text-black font-bold text-base shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-3 hover:scale-[1.01] group cursor-pointer"
           >
             <Play className="w-5 h-5 fill-black group-hover:translate-x-0.5 transition-transform" />
-            <span className="tracking-wide">Iniciar examen de conciencia</span>
+            <span className="tracking-wide">
+              {Object.keys(session.answers).length > 0 ? 'Continuar / Iniciar Examen' : 'Iniciar Examen de Conciencia'}
+            </span>
             <ArrowRight className="w-5 h-5" />
           </button>
+
+          {Object.keys(session.answers).length > 0 && onResetSession && (
+            <button
+              onClick={() => {
+                if (window.confirm('¿Deseas reiniciar todas las marcas del examen actual para empezar una revisión completamente limpia desde cero?')) {
+                  onResetSession();
+                }
+              }}
+              className="px-4 py-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shrink-0"
+              title="Borrar respuestas del examen actual para empezar limpio"
+            >
+              <X className="w-4 h-4" />
+              <span>Empezar Limpio</span>
+            </button>
+          )}
         </div>
       </div>
 
