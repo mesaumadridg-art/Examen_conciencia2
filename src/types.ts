@@ -60,12 +60,19 @@ export interface UserAnswer {
   categoryTitle?: string;
 }
 
+export interface DailyExamPass {
+  id: string;
+  date: string;
+  answers: Record<string, UserAnswer>;
+}
+
 export interface ExaminationSession {
   id: string;
   startDate: string; // ISO string
   updatedAt: string;
   profile: ProfileMode;
   answers: Record<string, UserAnswer>;
+  dailyPasses?: DailyExamPass[];
   isCompleted: boolean;
   notes?: string;
   startedAccumulationDate?: string; // ISO string when current accumulation cycle started

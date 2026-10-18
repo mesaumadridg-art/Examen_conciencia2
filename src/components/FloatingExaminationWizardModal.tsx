@@ -31,6 +31,7 @@ interface FloatingExaminationWizardModalProps {
   onClose: () => void;
   session: ExaminationSession;
   onUpdateAnswer: (questionId: string, status: AnswerStatus, note?: string) => void;
+  onFinishExamPass?: (workingAnswers: Record<string, UserAnswer>) => void;
   onGoToSummary: () => void;
   onResetSession?: () => void;
   personalization?: UserPersonalization;
@@ -55,6 +56,7 @@ export const FloatingExaminationWizardModal: React.FC<FloatingExaminationWizardM
   onClose,
   session,
   onUpdateAnswer,
+  onFinishExamPass,
   onGoToSummary,
   onResetSession,
   personalization = DEFAULT_PERSONALIZATION,
@@ -63,6 +65,17 @@ export const FloatingExaminationWizardModal: React.FC<FloatingExaminationWizardM
   const [currentWizardIndex, setCurrentWizardIndex] = useState<number>(0);
   const [noteInput, setNoteInput] = useState<string>('');
   const [pendingWarning, setPendingWarning] = useState<boolean>(false);
+  const [workingAnswers, setWorkingAnswers] = useState<Record<string, UserAnswer>>({});
+
+  // Reset workingAnswers to clean {} whenever modal opens so every daily exam starts 100% fresh!
+  useEffect(() => {
+    if (isOpen) {
+      setWorkingAnswers({});
+      setCurrentWizardIndex(0);
+      setNoteInput('');
+      setPendingWarning(false);
+    }
+  }, [isOpen]);
 
   // Filtered questions based on state of life personalization
   const personalizedQuestions = useMemo(() => {
@@ -82,11 +95,11 @@ export const FloatingExaminationWizardModal: React.FC<FloatingExaminationWizardM
     }
   }, [personalizedQuestions, currentWizardIndex]);
 
-  // Current question & answer
-    const currentQuestion = personalizedQuestions.length > 0
-      ? (personalizedQuestions[currentWizardIndex] || personalizedQuestions[0])
-      : undefined;
-    const currentQuestionAnswer = currentQuestion ? session.answers[currentQuestion.id] : undefined;
+  // Current question & answer in working session
+  const currentQuestion = personalizedQuestions.length > 0
+    ? (personalizedQuestions[currentWizardIndex] || personalizedQuestions[0])
+    : undefined;
+  const currentQuestionAnswer = currentQuestion ? workingAnswers[currentQuestion.id] : undefined;
   const isCurrentAnswered = Boolean(currentQuestionAnswer && currentQuestionAnswer.status);
 
   // Sync note input when wizard question changes
@@ -107,16 +120,40 @@ export const FloatingExaminationWizardModal: React.FC<FloatingExaminationWizardM
   const handleAnswerAndNext = (status: AnswerStatus) => {
     setPendingWarning(false);
     const qCat = CATEGORIES.find((c) => c.id === currentQuestion.categoryId);
+    const ans: UserAnswer = {
+      questionId: currentQuestion.id,
+      status,
+      note: noteInput.trim() || undefined,
+      timestamp: Date.now(),
+      questionText: currentQuestion.text,
+      categoryTitle: qCat?.title,
+    };
+
+    setWorkingAnswers((prev) => ({
+      ...prev,
+      [currentQuestion.id]: ans,
+    }));
+
+    // Pass answer to App
     onUpdateAnswer(
-      currentQuestion.id, 
-      status, 
-      noteInput.trim() || undefined, 
-      currentQuestion.text, 
+      currentQuestion.id,
+      status,
+      noteInput.trim() || undefined,
+      currentQuestion.text,
       qCat?.title
     );
+
     if (currentWizardIndex < personalizedQuestions.length - 1) {
       setCurrentWizardIndex((prev) => prev + 1);
     }
+  };
+
+  const handleFinishWizard = () => {
+    if (onFinishExamPass) {
+      onFinishExamPass(workingAnswers);
+    }
+    onClose();
+    onGoToSummary();
   };
 
   const handleJumpToCategory = (catId: string) => {
@@ -351,8 +388,7 @@ export const FloatingExaminationWizardModal: React.FC<FloatingExaminationWizardM
                     setPendingWarning(true);
                     return;
                   }
-                  onClose();
-                  onGoToSummary();
+                  handleFinishWizard();
                 }}
                 disabled={!isCurrentAnswered}
                 className="px-3.5 py-2 rounded-xl bg-[#C9A227] hover:bg-[#D4B34A] disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold text-xs shadow-md flex items-center gap-1 transition-all"

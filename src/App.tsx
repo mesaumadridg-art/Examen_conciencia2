@@ -270,6 +270,70 @@ export default function App() {
     }
   };
 
+  // Completes a Daily Exam Pass and merges marked sins into active Confession accumulation cycle
+  const handleFinishExamPass = (workingAnswers: Record<string, UserAnswer>) => {
+    const todayISO = new Date().toISOString();
+    const todayStr = todayISO.split('T')[0];
+
+    const pass: DailyExamPass = {
+      id: `pass_${Date.now()}`,
+      date: todayISO,
+      answers: workingAnswers,
+    };
+
+    const currentPasses = session.dailyPasses || [];
+    const updatedPasses = [...currentPasses, pass];
+
+    const updatedAnswers = { ...session.answers };
+
+    Object.entries(workingAnswers).forEach(([qId, ans]) => {
+      if (ans.status === 'leve' || ans.status === 'grave') {
+        const existing = updatedAnswers[qId];
+        const q = getQuestionById(qId);
+        const cat = CATEGORIES.find((c) => c.id === q?.categoryId);
+
+        if (existing && (existing.status === 'leve' || existing.status === 'grave')) {
+          updatedAnswers[qId] = {
+            ...existing,
+            status: ans.status === 'grave' ? 'grave' : existing.status,
+            count: (existing.count || 1) + 1,
+            timestamp: Date.now(),
+            note: ans.note || existing.note,
+          };
+        } else {
+          updatedAnswers[qId] = {
+            questionId: qId,
+            status: ans.status,
+            note: ans.note,
+            count: 1,
+            timestamp: Date.now(),
+            questionText: ans.questionText || q?.text,
+            categoryTitle: ans.categoryTitle || cat?.title,
+          };
+        }
+
+        if (q) {
+          updateAccumulatedStats(qId, ans.status, q.categoryId, q.capitalSinCategory);
+        }
+      }
+    });
+
+    const updatedSession: ExaminationSession = {
+      ...session,
+      startedAccumulationDate: session.startedAccumulationDate || todayISO,
+      answers: updatedAnswers,
+      dailyPasses: updatedPasses,
+      updatedAt: todayISO,
+    };
+
+    setSession(updatedSession);
+    saveStoredSession(updatedSession);
+
+    if (settings.lastDailyExamDate !== todayStr) {
+      handleUpdateSettings({ lastDailyExamDate: todayStr });
+    }
+  };
+
   // Reset current examination session (Call after confession or explicit clear)
   const handleResetSession = () => {
     clearStoredSession(activeProfile);
@@ -505,6 +569,7 @@ export default function App() {
               setIsWizardModalOpen(false);
               setActiveTab('resumen');
             }}
+            onFinishExamPass={handleFinishExamPass}
             session={session}
             onUpdateAnswer={handleUpdateAnswer}
             onResetSession={handleResetSession}
